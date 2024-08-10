@@ -14,6 +14,5 @@ public enum StakeStatus {
   DeactivatingValidator,
   /// Both the transient and validator stake account are deactivating, when
   /// a validator is removed with a transient stake active
-  DeactivatingAll;
-
+  DeactivatingAll
 }

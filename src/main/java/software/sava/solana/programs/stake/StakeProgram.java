@@ -5,9 +5,8 @@ import software.sava.core.accounts.PublicKey;
 import software.sava.core.accounts.SolanaAccounts;
 import software.sava.core.accounts.meta.AccountMeta;
 import software.sava.core.borsh.Borsh;
-import software.sava.core.programs.ProgramUtil;
-import software.sava.core.tx.Instruction;
 import software.sava.core.encoding.ByteUtil;
+import software.sava.core.tx.Instruction;
 
 import java.time.Instant;
 import java.util.List;
@@ -46,7 +45,7 @@ public final class StakeProgram {
     ///   0. `[WRITE]` Uninitialized stake account
     ///   1. `[]` Rent sysvar
     ///
-    /// Authorized carries pubkeys that must sign staker transactions
+    /// Authorized carries pub keys that must sign staker transactions
     ///   and withdrawer transactions.
     /// Lockup carries information about withdrawal restrictions
     Initialize(
@@ -116,7 +115,7 @@ public final class StakeProgram {
 
     /// Set stake lockup
     ///
-    /// If a lockup is not active, the withdraw authority may set a new lockup
+    /// If a lockup is not active, the withdrawal authority may set a new lockup
     /// If a lockup is active, the lockup custodian may update the lockup parameters
     ///
     /// # Account references
@@ -166,14 +165,14 @@ public final class StakeProgram {
 
     /// Initialize a stake with authorization information
     ///
-    /// This instruction is similar to `Initialize` except that the withdraw authority
+    /// This instruction is similar to `Initialize` except that the withdrawal authority
     /// must be a signer, and no lockup is applied to the account.
     ///
     /// # Account references
     ///   0. `[WRITE]` Uninitialized stake account
     ///   1. `[]` Rent sysvar
     ///   2. `[]` The stake authority
-    ///   3. `[SIGNER]` The withdraw authority
+    ///   3. `[SIGNER]` The withdrawal authority
     ///
     InitializeChecked,
 
@@ -214,7 +213,7 @@ public final class StakeProgram {
     /// This instruction behaves like `SetLockup` with the additional requirement that
     /// the new lockup authority also be a signer.
     ///
-    /// If a lockup is not active, the withdraw authority may set a new lockup
+    /// If a lockup is not active, the withdrawal authority may set a new lockup
     /// If a lockup is active, the lockup custodian may update the lockup parameters
     ///
     /// # Account references
@@ -250,7 +249,7 @@ public final class StakeProgram {
     ///      `MINIMUM_DELINQUENT_EPOCHS_FOR_DEACTIVATION` epochs
     DeactivateDelinquent,
 
-    /// Redelegate activated stake to another vote account.
+    /// Relegate activated stake to another vote account.
     ///
     /// Upon success:
     ///   * the balance of the delegated stake account will be reduced to the undelegated amount in
@@ -262,10 +261,10 @@ public final class StakeProgram {
     ///     will also be included in the re-delegation.
     ///
     /// # Account references
-    ///   0. `[WRITE]` Delegated stake account to be redelegated. The account must be fully
+    ///   0. `[WRITE]` Delegated stake account to be re-delegated. The account must be fully
     ///      activated and carry a balance greater than or equal to the minimum delegation amount
     ///      plus rent exempt minimum
-    ///   1. `[WRITE]` Uninitialized stake account that will hold the redelegated stake
+    ///   1. `[WRITE]` Uninitialized stake account that will hold the re-delegated stake
     ///   2. `[]` Vote account to which this stake will be re-delegated
     ///   3. `[]` Address of config account that carries stake config
     ///   4. `[SIGNER]` Stake authority
