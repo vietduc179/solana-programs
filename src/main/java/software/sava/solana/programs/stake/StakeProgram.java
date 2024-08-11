@@ -343,7 +343,7 @@ public final class StakeProgram {
     final var keys = List.of(
         createWrite(destinationStakeAccount),
         createWrite(srcStakeAccount),
-        solanaAccounts.readRentSysVar(),
+        solanaAccounts.readClockSysVar(),
         solanaAccounts.readStakeHistorySysVar(),
         stakeAuthority
     );

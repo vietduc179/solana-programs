@@ -7,12 +7,13 @@ import software.sava.core.accounts.meta.LookupTableAccountMeta;
 import software.sava.core.accounts.token.TokenAccount;
 import software.sava.core.tx.Instruction;
 import software.sava.core.tx.Transaction;
+import software.sava.rpc.json.http.client.SolanaRpcClient;
+import software.sava.rpc.json.http.response.AccountInfo;
 import software.sava.solana.programs.stake.StakeAccount;
 import software.sava.solana.programs.stake.StakeProgram;
 import software.sava.solana.programs.stake.StakeState;
-import software.sava.rpc.json.http.client.SolanaRpcClient;
-import software.sava.rpc.json.http.response.AccountInfo;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -260,6 +261,20 @@ public interface NativeProgramAccountClient {
 
   Instruction deactivateStakeAccount(final PublicKey delegatedStakeAccount);
 
+  default Instruction deactivateStakeAccount(final StakeAccount delegatedStakeAccount) {
+    return deactivateStakeAccount(delegatedStakeAccount.address());
+  }
+
+  default Instruction deactivateStakeAccount(final AccountInfo<StakeAccount> delegatedStakeAccount) {
+    return deactivateStakeAccount(delegatedStakeAccount.pubKey());
+  }
+
+  List<Instruction> deactivateStakeAccountInfos(final Collection<AccountInfo<StakeAccount>> delegatedStakeAccounts);
+
+  List<Instruction> deactivateStakeAccounts(final Collection<StakeAccount> delegatedStakeAccounts);
+
+  List<Instruction> deactivateStakeAccountKeys(final Collection<PublicKey> delegatedStakeAccounts);
+
   Instruction initializeStakeAccountWithStaker(final PublicKey unInitializedStakeAccount,
                                                final PublicKey staker);
 
@@ -294,15 +309,37 @@ public interface NativeProgramAccountClient {
   Instruction mergeStakeAccounts(final PublicKey destinationStakeAccount,
                                  final PublicKey srcStakeAccount);
 
+  default Instruction mergeStakeAccounts(final StakeAccount destinationStakeAccount,
+                                         final StakeAccount srcStakeAccount) {
+    return mergeStakeAccounts(destinationStakeAccount.address(), srcStakeAccount.address());
+  }
+
+  default Instruction mergeStakeAccounts(final AccountInfo<StakeAccount> destinationStakeAccount,
+                                         final AccountInfo<StakeAccount> srcStakeAccount) {
+    return mergeStakeAccounts(destinationStakeAccount.pubKey(), srcStakeAccount.pubKey());
+  }
+
+  List<Instruction> mergeStakeAccountKeys(final List<PublicKey> stakeAccounts);
+
+  List<Instruction> mergeStakeAccounts(final List<StakeAccount> stakeAccounts);
+
+  List<Instruction> mergeStakeAccountInfos(final List<AccountInfo<StakeAccount>> stakeAccounts);
+
   Instruction withdrawStakeAccount(final PublicKey stakeAccount,
                                    final AccountMeta lockupAuthority,
                                    final long lamports);
 
   Instruction withdrawStakeAccount(final PublicKey stakeAccount, final long lamports);
 
-  default Instruction withdrawStakeAccount(final StakeAccount stakeAccount) {
-    return withdrawStakeAccount(stakeAccount.address(), stakeAccount.stake());
+  default Instruction withdrawStakeAccount(final StakeAccount stakeAccount, final long lamports) {
+    return withdrawStakeAccount(stakeAccount.address(), lamports);
   }
+
+  default Instruction closeStakeAccount(final AccountInfo<StakeAccount> stakeAccount) {
+    return withdrawStakeAccount(stakeAccount.pubKey(), stakeAccount.lamports());
+  }
+
+  List<Instruction> closeStakeAccounts(final Collection<AccountInfo<StakeAccount>> stakeAccounts);
 
   ProgramDerivedAddress findLookupTableAddress(final long recentSlot);
 

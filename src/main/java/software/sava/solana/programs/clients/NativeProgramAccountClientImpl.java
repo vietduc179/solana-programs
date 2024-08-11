@@ -7,19 +7,20 @@ import software.sava.core.accounts.SolanaAccounts;
 import software.sava.core.accounts.lookup.AddressLookupTable;
 import software.sava.core.accounts.meta.AccountMeta;
 import software.sava.core.accounts.meta.LookupTableAccountMeta;
-import software.sava.solana.programs.system.SystemProgram;
-import software.sava.solana.programs.token.AssociatedTokenProgram;
 import software.sava.core.accounts.token.TokenAccount;
-import software.sava.solana.programs.token.TokenProgram;
 import software.sava.core.tx.Instruction;
 import software.sava.core.tx.Transaction;
+import software.sava.rpc.json.http.client.SolanaRpcClient;
+import software.sava.rpc.json.http.response.AccountInfo;
 import software.sava.solana.programs.address_lookup_table.AddressLookupTableProgram;
 import software.sava.solana.programs.stake.StakeAccount;
 import software.sava.solana.programs.stake.StakeProgram;
 import software.sava.solana.programs.stake.StakeState;
-import software.sava.rpc.json.http.client.SolanaRpcClient;
-import software.sava.rpc.json.http.response.AccountInfo;
+import software.sava.solana.programs.system.SystemProgram;
+import software.sava.solana.programs.token.AssociatedTokenProgram;
+import software.sava.solana.programs.token.TokenProgram;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -621,6 +622,21 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   }
 
   @Override
+  public List<Instruction> deactivateStakeAccountInfos(final Collection<AccountInfo<StakeAccount>> delegatedStakeAccounts) {
+    return delegatedStakeAccounts.stream().map(this::deactivateStakeAccount).toList();
+  }
+
+  @Override
+  public List<Instruction> deactivateStakeAccounts(final Collection<StakeAccount> delegatedStakeAccounts) {
+    return delegatedStakeAccounts.stream().map(this::deactivateStakeAccount).toList();
+  }
+
+  @Override
+  public List<Instruction> deactivateStakeAccountKeys(final Collection<PublicKey> delegatedStakeAccounts) {
+    return delegatedStakeAccounts.stream().map(this::deactivateStakeAccount).toList();
+  }
+
+  @Override
   public Instruction splitStakeAccount(final PublicKey splitStakeAccount,
                                        final PublicKey unInitializedStakeAccount,
                                        final long lamports) {
@@ -643,6 +659,30 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   }
 
   @Override
+  public List<Instruction> mergeStakeAccountKeys(final List<PublicKey> stakeAccounts) {
+    final var mergeInto = stakeAccounts.getFirst();
+    return stakeAccounts.stream().skip(1)
+        .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
+        .toList();
+  }
+
+  @Override
+  public List<Instruction> mergeStakeAccounts(final List<StakeAccount> stakeAccounts) {
+    final var mergeInto = stakeAccounts.getFirst();
+    return stakeAccounts.stream().skip(1)
+        .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
+        .toList();
+  }
+
+  @Override
+  public List<Instruction> mergeStakeAccountInfos(final List<AccountInfo<StakeAccount>> stakeAccounts) {
+    final var mergeInto = stakeAccounts.getFirst();
+    return stakeAccounts.stream().skip(1)
+        .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
+        .toList();
+  }
+
+  @Override
   public Instruction withdrawStakeAccount(final PublicKey stakeAccount,
                                           final AccountMeta lockupAuthority,
                                           final long lamports) {
@@ -657,8 +697,12 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public Instruction withdrawStakeAccount(final PublicKey stakeAccount, final long lamports) {
-    return withdrawStakeAccount(stakeAccount, null, lamports
-    );
+    return withdrawStakeAccount(stakeAccount, null, lamports);
+  }
+
+  @Override
+  public List<Instruction> closeStakeAccounts(final Collection<AccountInfo<StakeAccount>> stakeAccounts) {
+    return stakeAccounts.stream().map(this::closeStakeAccount).toList();
   }
 
   @Override
