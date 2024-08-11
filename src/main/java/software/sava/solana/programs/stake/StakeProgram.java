@@ -374,8 +374,7 @@ public final class StakeProgram {
     setDiscriminator(data, StakeInstruction.Initialize);
     staker.write(data, PUBLIC_KEY_LENGTH);
     int i = DISCRIMINATOR_LENGTH + PUBLIC_KEY_LENGTH;
-    withdrawer.write(data, i);
-    i += PUBLIC_KEY_LENGTH;
+    i += withdrawer.write(data, i);
     lockUp.write(data, i);
 
     return Instruction.createInstruction(solanaAccounts.invokedStakeProgram(), keys, data);
@@ -501,8 +500,7 @@ public final class StakeProgram {
         + PUBLIC_KEY_LENGTH];
     setDiscriminator(data, StakeInstruction.AuthorizeWithSeed);
     int i = DISCRIMINATOR_LENGTH;
-    newAuthorizedPublicKey.write(data, i);
-    i += PUBLIC_KEY_LENGTH;
+    i += newAuthorizedPublicKey.write(data, i);
     i += stakeAuthorize.write(data, i);
     i += Borsh.write(authoritySeedBytes, data, i);
     authorityOwner.write(data, i);

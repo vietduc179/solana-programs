@@ -325,6 +325,12 @@ public interface NativeProgramAccountClient {
 
   List<Instruction> mergeStakeAccountInfos(final List<AccountInfo<StakeAccount>> stakeAccounts);
 
+  List<Instruction> mergeStakeAccountKeys(final Collection<PublicKey> stakeAccounts);
+
+  List<Instruction> mergeStakeAccounts(final Collection<StakeAccount> stakeAccounts);
+
+  List<Instruction> mergeStakeAccountInfos(final Collection<AccountInfo<StakeAccount>> stakeAccounts);
+
   Instruction withdrawStakeAccount(final PublicKey stakeAccount,
                                    final AccountMeta lockupAuthority,
                                    final long lamports);

@@ -29,8 +29,7 @@ public record StakeAuthorizationIndexed(StakeAuthorize stakeAuthorize,
   @Override
   public int write(final byte[] data, final int offset) {
     int i = stakeAuthorize.write(data, offset);
-    newAuthorityPublicKey.write(data, i);
-    i += PublicKey.PUBLIC_KEY_LENGTH;
+    i += newAuthorityPublicKey.write(data, i);
     ByteUtil.putInt64LE(data, i, authorityIndex);
     i += Long.BYTES;
     ByteUtil.putInt64LE(data, i, newAuthorityIndex);

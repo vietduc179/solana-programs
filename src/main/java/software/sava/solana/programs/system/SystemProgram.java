@@ -224,8 +224,7 @@ public final class SystemProgram {
     final byte[] data = new byte[Integer.BYTES + PUBLIC_KEY_LENGTH + (Long.BYTES + seedBytes.length) + Long.BYTES + PUBLIC_KEY_LENGTH];
     setDiscriminator(data, SystemInstruction.AllocateWithSeed);
     int i = Integer.BYTES;
-    baseAccount.publicKey().write(data, i);
-    i += PUBLIC_KEY_LENGTH;
+    i += baseAccount.publicKey().write(data, i);
     i = writeBytes(seedBytes, data, i);
     putInt64LE(data, i, space);
     i += Long.BYTES;
@@ -256,8 +255,7 @@ public final class SystemProgram {
     final byte[] data = new byte[Integer.BYTES + PUBLIC_KEY_LENGTH + (Long.BYTES + seedBytes.length) + PUBLIC_KEY_LENGTH];
     setDiscriminator(data, SystemInstruction.AssignWithSeed);
     int i = Integer.BYTES;
-    baseAccount.publicKey().write(data, i);
-    i += PUBLIC_KEY_LENGTH;
+    i += baseAccount.publicKey().write(data, i);
     i = writeBytes(seedBytes, data, i);
     programOwner.write(data, i);
 

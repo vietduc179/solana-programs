@@ -127,8 +127,7 @@ public final class AddressLookupTableProgram {
     ByteUtil.putInt64LE(data, DISCRIMINATOR_LENGTH, newAddresses.size());
     int i = DISCRIMINATOR_LENGTH + Long.BYTES;
     for (final var a : newAddresses) {
-      a.write(data, i);
-      i += PublicKey.PUBLIC_KEY_LENGTH;
+      i += a.write(data, i);
     }
     return data;
   }
