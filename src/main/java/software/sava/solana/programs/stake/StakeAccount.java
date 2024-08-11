@@ -1,17 +1,17 @@
 package software.sava.solana.programs.stake;
 
 import software.sava.core.accounts.PublicKey;
-import software.sava.core.rpc.Filter;
 import software.sava.core.encoding.ByteUtil;
+import software.sava.core.rpc.Filter;
 
 import java.util.function.BiFunction;
 
 import static software.sava.core.accounts.PublicKey.PUBLIC_KEY_LENGTH;
 import static software.sava.core.accounts.PublicKey.readPubKey;
-import static software.sava.core.rpc.Filter.createDataSizeFilter;
-import static software.sava.core.rpc.Filter.createMemCompFilter;
 import static software.sava.core.encoding.ByteUtil.getFloat64LE;
 import static software.sava.core.encoding.ByteUtil.getInt64LE;
+import static software.sava.core.rpc.Filter.createDataSizeFilter;
+import static software.sava.core.rpc.Filter.createMemCompFilter;
 
 public record StakeAccount(PublicKey address,
                            StakeState state,
@@ -26,6 +26,22 @@ public record StakeAccount(PublicKey address,
                            double warmupCoolDownRate,
                            long creditsObserved,
                            byte stakeFlags) {
+
+  public enum State {
+
+    ACTIVATING,
+    ACTIVE,
+    DE_ACTIVATING,
+    INACTIVE;
+  }
+
+  public State state(final long currentEpoch) {
+    if (deActivationEpoch < 0) {
+      return activationEpoch > 0 && activationEpoch < currentEpoch ? State.ACTIVE : State.ACTIVATING;
+    } else {
+      return deActivationEpoch < currentEpoch ? State.INACTIVE : State.DE_ACTIVATING;
+    }
+  }
 
   public static final int BYTES = 200;
   public static final Filter DATA_SIZE_FILTER = createDataSizeFilter(BYTES);
