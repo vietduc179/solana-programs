@@ -319,6 +319,12 @@ public interface NativeProgramAccountClient {
     return mergeStakeAccounts(destinationStakeAccount.pubKey(), srcStakeAccount.pubKey());
   }
 
+  List<Instruction> mergeStakeAccountInto(final PublicKey destinationStakeAccount, final Collection<PublicKey> stakeAccounts);
+
+  List<Instruction> mergeStakeAccountsInto(final StakeAccount destinationStakeAccount, final Collection<StakeAccount> stakeAccounts);
+
+  List<Instruction> mergeStakeAccountsInto(final AccountInfo<StakeAccount> destinationStakeAccount, final Collection<AccountInfo<StakeAccount>> stakeAccounts);
+
   List<Instruction> mergeStakeAccountKeys(final List<PublicKey> stakeAccounts);
 
   List<Instruction> mergeStakeAccounts(final List<StakeAccount> stakeAccounts);

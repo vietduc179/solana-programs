@@ -660,60 +660,86 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   }
 
   @Override
+  public List<Instruction> mergeStakeAccountInto(final PublicKey destinationStakeAccount, final Collection<PublicKey> stakeAccounts) {
+    return stakeAccounts.stream()
+        .map(stakeAccount -> mergeStakeAccounts(destinationStakeAccount, stakeAccount))
+        .toList();
+  }
+
+  @Override
+  public List<Instruction> mergeStakeAccountsInto(final StakeAccount destinationStakeAccount, final Collection<StakeAccount> stakeAccounts) {
+    return stakeAccounts.stream()
+        .map(stakeAccount -> mergeStakeAccounts(destinationStakeAccount, stakeAccount))
+        .toList();
+  }
+
+  @Override
+  public List<Instruction> mergeStakeAccountsInto(final AccountInfo<StakeAccount> destinationStakeAccount, final Collection<AccountInfo<StakeAccount>> stakeAccounts) {
+    return stakeAccounts.stream()
+        .map(stakeAccount -> mergeStakeAccounts(destinationStakeAccount, stakeAccount))
+        .toList();
+  }
+
+  @Override
   public List<Instruction> mergeStakeAccountKeys(final List<PublicKey> stakeAccounts) {
     if (stakeAccounts.size() < 2) {
       return List.of();
+    } else {
+      final var mergeInto = stakeAccounts.getFirst();
+      return stakeAccounts.stream().skip(1)
+          .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
+          .toList();
     }
-    final var mergeInto = stakeAccounts.getFirst();
-    return stakeAccounts.stream().skip(1)
-        .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
-        .toList();
   }
 
   @Override
   public List<Instruction> mergeStakeAccounts(final List<StakeAccount> stakeAccounts) {
     if (stakeAccounts.size() < 2) {
       return List.of();
+    } else {
+      final var mergeInto = stakeAccounts.getFirst();
+      return stakeAccounts.stream().skip(1)
+          .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
+          .toList();
     }
-    final var mergeInto = stakeAccounts.getFirst();
-    return stakeAccounts.stream().skip(1)
-        .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
-        .toList();
   }
 
   @Override
   public List<Instruction> mergeStakeAccountInfos(final List<AccountInfo<StakeAccount>> stakeAccounts) {
     if (stakeAccounts.size() < 2) {
       return List.of();
+    } else {
+      final var mergeInto = stakeAccounts.getFirst();
+      return stakeAccounts.stream().skip(1)
+          .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
+          .toList();
     }
-    final var mergeInto = stakeAccounts.getFirst();
-    return stakeAccounts.stream().skip(1)
-        .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
-        .toList();
   }
 
   @Override
   public List<Instruction> mergeStakeAccountKeys(final Collection<PublicKey> stakeAccounts) {
     if (stakeAccounts.size() < 2) {
       return List.of();
+    } else {
+      final var array = stakeAccounts.toArray(PublicKey[]::new);
+      final var mergeInto = array[0];
+      return Arrays.stream(array, 1, array.length)
+          .map(accountInfo -> mergeStakeAccounts(mergeInto, accountInfo))
+          .toList();
     }
-    final var array = stakeAccounts.toArray(PublicKey[]::new);
-    final var mergeInto = array[0];
-    return Arrays.stream(array, 1, array.length)
-        .map(accountInfo -> mergeStakeAccounts(mergeInto, accountInfo))
-        .toList();
   }
 
   @Override
   public List<Instruction> mergeStakeAccounts(final Collection<StakeAccount> stakeAccounts) {
     if (stakeAccounts.size() < 2) {
       return List.of();
+    } else {
+      final var array = stakeAccounts.toArray(StakeAccount[]::new);
+      final var mergeInto = array[0];
+      return Arrays.stream(array, 1, array.length)
+          .map(accountInfo -> mergeStakeAccounts(mergeInto, accountInfo))
+          .toList();
     }
-    final var array = stakeAccounts.toArray(StakeAccount[]::new);
-    final var mergeInto = array[0];
-    return Arrays.stream(array, 1, array.length)
-        .map(accountInfo -> mergeStakeAccounts(mergeInto, accountInfo))
-        .toList();
   }
 
   @Override

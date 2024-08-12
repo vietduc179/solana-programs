@@ -21,9 +21,11 @@ def getAppVersion = { ->
 
 ext {
   VERSION = getAppVersion()
+  ORG = 'sava-software'
+  REPO = 'solana-programs'
   VCS_URL = 'https://github.com/sava-software/solana-programs'
   jsoniter = '2.11.+'
-  sava = '1.0.5'
+  sava = '1.0.7'
   bouncycastleMinor = 'jdk18on'
   bouncycastlePatch = '1.78.1' // https://www.bouncycastle.org/latest_releases.html#LATEST
 }
