@@ -5,9 +5,9 @@ import software.sava.core.accounts.PublicKey;
 import software.sava.core.accounts.SolanaAccounts;
 import software.sava.core.accounts.meta.AccountMeta;
 import software.sava.core.tx.Instruction;
-import software.sava.solana.programs.clients.NativeProgramAccountClient;
 import software.sava.rpc.json.http.client.SolanaRpcClient;
 import software.sava.rpc.json.http.response.AccountInfo;
+import software.sava.solana.programs.clients.NativeProgramAccountClient;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -41,6 +41,12 @@ public interface StakePoolProgramClient {
   static CompletableFuture<AccountInfo<StakePoolState>> fetchProgramState(final SolanaRpcClient rpcClient,
                                                                           final PublicKey stakePoolPublicKey) {
     return rpcClient.getAccountInfo(stakePoolPublicKey, StakePoolState.FACTORY);
+  }
+
+  static CompletableFuture<AccountInfo<ValidatorList>> fetchProgramState(final SolanaRpcClient rpcClient,
+                                                                         final StakePoolState programState) {
+    final var destinationValidatorList = programState.validatorList();
+    return rpcClient.getAccountInfo(destinationValidatorList, ValidatorList.FACTORY);
   }
 
   static ProgramDerivedAddress findStakePoolWithdrawAuthority(final AccountInfo<StakePoolState> stakePoolStateAccountInfo) {
