@@ -43,8 +43,8 @@ public interface StakePoolProgramClient {
     return rpcClient.getAccountInfo(stakePoolPublicKey, StakePoolState.FACTORY);
   }
 
-  static CompletableFuture<AccountInfo<ValidatorList>> fetchProgramState(final SolanaRpcClient rpcClient,
-                                                                         final StakePoolState programState) {
+  static CompletableFuture<AccountInfo<ValidatorList>> fetchValidatorList(final SolanaRpcClient rpcClient,
+                                                                          final StakePoolState programState) {
     final var destinationValidatorList = programState.validatorList();
     return rpcClient.getAccountInfo(destinationValidatorList, ValidatorList.FACTORY);
   }
