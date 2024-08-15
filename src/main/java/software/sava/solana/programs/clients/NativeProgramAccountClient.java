@@ -190,6 +190,12 @@ public interface NativeProgramAccountClient {
 
   CompletableFuture<List<AccountInfo<TokenAccount>>> fetchToken2022Accounts(final SolanaRpcClient rpcClient);
 
+  Instruction syncNative();
+
+  List<Instruction> wrapSOL(final long lamports);
+
+  Instruction unwrapSOL();
+
   Instruction createAccount(final PublicKey newAccountPublicKey,
                             final long lamports,
                             final long space,

@@ -336,6 +336,24 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   }
 
   @Override
+  public Instruction syncNative() {
+    return nativeProgramClient.syncNative(wrappedSolPDA.publicKey());
+  }
+
+  @Override
+  public List<Instruction> wrapSOL(final long lamports) {
+    final var createATAIx = createATA(true, wrappedSolPDA.publicKey(), accounts.wrappedSolTokenMint());
+    final var transferIx = transferSolLamports(wrappedSolPDA.publicKey(), lamports);
+    final var syncNativeIx = nativeProgramClient.syncNative(wrappedSolPDA.publicKey());
+    return List.of(createATAIx, transferIx, syncNativeIx);
+  }
+
+  @Override
+  public Instruction unwrapSOL() {
+    return closeTokenAccount(wrappedSolPDA.publicKey());
+  }
+
+  @Override
   public Instruction createAccount(final PublicKey newAccountPublicKey,
                                    final long lamports,
                                    final long space,
