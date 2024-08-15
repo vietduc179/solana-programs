@@ -11,8 +11,9 @@ import static software.sava.core.accounts.PublicKey.PUBLIC_KEY_LENGTH;
 import static software.sava.core.accounts.meta.AccountMeta.createWritableSigner;
 import static software.sava.core.accounts.meta.AccountMeta.createWrite;
 import static software.sava.core.encoding.ByteUtil.putInt64LE;
+import static software.sava.core.programs.Discriminator.NATIVE_DISCRIMINATOR_LENGTH;
+import static software.sava.core.programs.Discriminator.serializeDiscriminator;
 import static software.sava.core.tx.Instruction.createInstruction;
-import static software.sava.core.programs.ProgramUtil.setDiscriminator;
 
 // https://github.com/solana-labs/solana/blob/master/sdk/program/src/system_instruction.rs
 public final class SystemProgram {
@@ -206,8 +207,8 @@ public final class SystemProgram {
                                      final long space) {
     final var keys = List.of(createWritableSigner(newAccount));
 
-    final byte[] data = new byte[Integer.BYTES + Long.BYTES];
-    setDiscriminator(data, SystemInstruction.Allocate);
+    final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + Long.BYTES];
+    serializeDiscriminator(data, SystemInstruction.Allocate);
     putInt64LE(data, 4, space);
 
     return createInstruction(invokedProgram, keys, data);
@@ -221,8 +222,8 @@ public final class SystemProgram {
     final var keys = List.of(createWrite(accountWithSeed.publicKey()), baseAccount);
 
     final byte[] seedBytes = accountWithSeed.asciiSeed();
-    final byte[] data = new byte[Integer.BYTES + PUBLIC_KEY_LENGTH + (Long.BYTES + seedBytes.length) + Long.BYTES + PUBLIC_KEY_LENGTH];
-    setDiscriminator(data, SystemInstruction.AllocateWithSeed);
+    final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + PUBLIC_KEY_LENGTH + (Long.BYTES + seedBytes.length) + Long.BYTES + PUBLIC_KEY_LENGTH];
+    serializeDiscriminator(data, SystemInstruction.AllocateWithSeed);
     int i = Integer.BYTES;
     i += baseAccount.publicKey().write(data, i);
     i = writeBytes(seedBytes, data, i);
@@ -238,8 +239,8 @@ public final class SystemProgram {
                                    final PublicKey programOwner) {
     final var keys = List.of(newAccount);
 
-    final byte[] data = new byte[Integer.BYTES + PUBLIC_KEY_LENGTH];
-    setDiscriminator(data, SystemInstruction.Assign);
+    final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + PUBLIC_KEY_LENGTH];
+    serializeDiscriminator(data, SystemInstruction.Assign);
     programOwner.write(data, Integer.BYTES);
 
     return createInstruction(invokedProgram, keys, data);
@@ -252,8 +253,8 @@ public final class SystemProgram {
     final var keys = List.of(createWrite(accountWithSeed.publicKey()), baseAccount);
 
     final byte[] seedBytes = accountWithSeed.asciiSeed();
-    final byte[] data = new byte[Integer.BYTES + PUBLIC_KEY_LENGTH + (Long.BYTES + seedBytes.length) + PUBLIC_KEY_LENGTH];
-    setDiscriminator(data, SystemInstruction.AssignWithSeed);
+    final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + PUBLIC_KEY_LENGTH + (Long.BYTES + seedBytes.length) + PUBLIC_KEY_LENGTH];
+    serializeDiscriminator(data, SystemInstruction.AssignWithSeed);
     int i = Integer.BYTES;
     i += baseAccount.publicKey().write(data, i);
     i = writeBytes(seedBytes, data, i);
@@ -270,8 +271,8 @@ public final class SystemProgram {
                                           final PublicKey programOwner) {
     final var keys = List.of(fromPublicKey, createWritableSigner(newAccountPublicKey));
 
-    final byte[] data = new byte[4 + 8 + 8 + 32];
-    setDiscriminator(data, SystemInstruction.CreateAccount);
+    final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + Long.BYTES + Long.BYTES + PUBLIC_KEY_LENGTH];
+    serializeDiscriminator(data, SystemInstruction.CreateAccount);
     putInt64LE(data, 4, lamports);
     putInt64LE(data, 12, space);
     programOwner.write(data, 20);
@@ -288,8 +289,8 @@ public final class SystemProgram {
     final byte[] seedBytes = accountWithSeed.asciiSeed();
     final var keys = List.of(fromPublicKey, createWrite(accountWithSeed.publicKey()));
 
-    final byte[] data = new byte[Integer.BYTES + PUBLIC_KEY_LENGTH + (Long.BYTES + seedBytes.length) + Long.BYTES + Long.BYTES + PUBLIC_KEY_LENGTH];
-    setDiscriminator(data, SystemInstruction.CreateAccountWithSeed);
+    final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + PUBLIC_KEY_LENGTH + (Long.BYTES + seedBytes.length) + Long.BYTES + Long.BYTES + PUBLIC_KEY_LENGTH];
+    serializeDiscriminator(data, SystemInstruction.CreateAccountWithSeed);
 
     fromPublicKey.publicKey().write(data, Integer.BYTES);
     int i = writeBytes(seedBytes, data, Integer.BYTES + PUBLIC_KEY_LENGTH);
@@ -311,8 +312,8 @@ public final class SystemProgram {
         createWrite(toPublicKey)
     );
 
-    final byte[] data = new byte[4 + 8];
-    setDiscriminator(data, SystemInstruction.Transfer);
+    final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + Long.BYTES];
+    serializeDiscriminator(data, SystemInstruction.Transfer);
     putInt64LE(data, 4, lamports);
 
     return createInstruction(invokedProgram, keys, data);
@@ -332,7 +333,7 @@ public final class SystemProgram {
 
     final byte[] seedBytes = accountWithSeed.asciiSeed();
     final byte[] data = new byte[Integer.BYTES + Long.BYTES + (Long.BYTES + seedBytes.length) + PUBLIC_KEY_LENGTH];
-    setDiscriminator(data, SystemInstruction.TransferWithSeed);
+    serializeDiscriminator(data, SystemInstruction.TransferWithSeed);
     int i = Integer.BYTES;
     putInt64LE(data, i, lamports);
     i += Long.BYTES;

@@ -12,7 +12,8 @@ import java.util.List;
 import static software.sava.core.accounts.PublicKey.PUBLIC_KEY_LENGTH;
 import static software.sava.core.accounts.meta.AccountMeta.createWrite;
 import static software.sava.core.encoding.ByteUtil.putInt64LE;
-import static software.sava.core.programs.ProgramUtil.*;
+import static software.sava.core.programs.Discriminator.NATIVE_DISCRIMINATOR_LENGTH;
+import static software.sava.core.programs.Discriminator.serializeDiscriminator;
 import static software.sava.core.tx.Instruction.createInstruction;
 
 public final class AddressLookupTableProgram {
@@ -100,10 +101,10 @@ public final class AddressLookupTableProgram {
         solanaAccounts.readSystemProgram()
     );
 
-    final byte[] data = new byte[DISCRIMINATOR_LENGTH + Long.BYTES + 1];
-    setDiscriminator(data, ProgramInstruction.CreateLookupTable);
-    putInt64LE(data, DISCRIMINATOR_LENGTH, recentSlot);
-    data[DISCRIMINATOR_LENGTH + Long.BYTES] = (byte) bumpSeed;
+    final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + Long.BYTES + 1];
+    serializeDiscriminator(data, ProgramInstruction.CreateLookupTable);
+    putInt64LE(data, NATIVE_DISCRIMINATOR_LENGTH, recentSlot);
+    data[NATIVE_DISCRIMINATOR_LENGTH + Long.BYTES] = (byte) bumpSeed;
 
     return createInstruction(solanaAccounts.invokedAddressLookupTableProgram(), keys, data);
   }
@@ -116,16 +117,16 @@ public final class AddressLookupTableProgram {
         authorityAccount
     );
 
-    final byte[] data = createDiscriminator(ProgramInstruction.FreezeLookupTable);
+    final byte[] data = serializeDiscriminator(ProgramInstruction.FreezeLookupTable);
 
     return createInstruction(solanaAccounts.invokedAddressLookupTableProgram(), keys, data);
   }
 
   private static byte[] createExtendTableData(final List<PublicKey> newAddresses) {
-    final byte[] data = new byte[DISCRIMINATOR_LENGTH + Long.BYTES + (PUBLIC_KEY_LENGTH * newAddresses.size())];
-    setDiscriminator(data, ProgramInstruction.ExtendLookupTable);
-    ByteUtil.putInt64LE(data, DISCRIMINATOR_LENGTH, newAddresses.size());
-    int i = DISCRIMINATOR_LENGTH + Long.BYTES;
+    final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + Long.BYTES + (PUBLIC_KEY_LENGTH * newAddresses.size())];
+    serializeDiscriminator(data, ProgramInstruction.ExtendLookupTable);
+    ByteUtil.putInt64LE(data, NATIVE_DISCRIMINATOR_LENGTH, newAddresses.size());
+    int i = NATIVE_DISCRIMINATOR_LENGTH + Long.BYTES;
     for (final var a : newAddresses) {
       i += a.write(data, i);
     }
@@ -165,7 +166,7 @@ public final class AddressLookupTableProgram {
         authorityAccount
     );
 
-    final byte[] data = createDiscriminator(ProgramInstruction.DeactivateLookupTable);
+    final byte[] data = serializeDiscriminator(ProgramInstruction.DeactivateLookupTable);
 
     return createInstruction(solanaAccounts.invokedAddressLookupTableProgram(), keys, data);
   }
@@ -180,7 +181,7 @@ public final class AddressLookupTableProgram {
         createWrite(lamportRecipient)
     );
 
-    final byte[] data = createDiscriminator(ProgramInstruction.CloseLookupTable);
+    final byte[] data = serializeDiscriminator(ProgramInstruction.CloseLookupTable);
 
     return createInstruction(solanaAccounts.invokedAddressLookupTableProgram(), keys, data);
   }
