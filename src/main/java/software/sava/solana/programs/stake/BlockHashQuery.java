@@ -51,8 +51,7 @@ public sealed interface BlockHashQuery extends RustEnum
 
     @Override
     public int write(final byte[] data, final int offset) {
-      data[offset] = (byte) ordinal();
-      int i = 1 + offset;
+      int i = writeOrdinal(data, offset);
       i += source.write(data, i);
       System.arraycopy(hash, 0, data, i, hash.length);
       i += hash.length;
