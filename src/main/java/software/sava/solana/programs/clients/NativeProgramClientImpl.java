@@ -5,25 +5,26 @@ import software.sava.core.accounts.PublicKey;
 import software.sava.core.accounts.SolanaAccounts;
 import software.sava.core.accounts.lookup.AddressLookupTable;
 import software.sava.core.accounts.meta.AccountMeta;
-import software.sava.solana.programs.system.SystemProgram;
-import software.sava.solana.programs.token.TokenProgram;
+import software.sava.core.accounts.sysvar.Clock;
 import software.sava.core.rpc.Filter;
 import software.sava.core.tx.Instruction;
+import software.sava.rpc.json.http.client.SolanaRpcClient;
+import software.sava.rpc.json.http.response.AccountInfo;
 import software.sava.solana.programs.stake.LockUp;
 import software.sava.solana.programs.stake.StakeAccount;
 import software.sava.solana.programs.stake.StakeProgram;
 import software.sava.solana.programs.stake.StakeState;
-import software.sava.rpc.json.http.client.SolanaRpcClient;
-import software.sava.rpc.json.http.response.AccountInfo;
+import software.sava.solana.programs.system.SystemProgram;
+import software.sava.solana.programs.token.TokenProgram;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.OptionalLong;
 import java.util.concurrent.CompletableFuture;
 
+import static software.sava.core.rpc.Filter.createMemCompFilter;
 import static software.sava.solana.programs.compute_budget.ComputeBudgetProgram.setComputeUnitLimit;
 import static software.sava.solana.programs.compute_budget.ComputeBudgetProgram.setComputeUnitPrice;
-import static software.sava.core.rpc.Filter.createMemCompFilter;
 import static software.sava.solana.programs.stake.StakeAccount.*;
 
 record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgramClient {
@@ -31,6 +32,11 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
   @Override
   public NativeProgramAccountClient createAccountClient(final AccountMeta owner) {
     return new NativeProgramAccountClientImpl(this, owner);
+  }
+
+  @Override
+  public CompletableFuture<AccountInfo<Clock>> fetchClockSysVar(final SolanaRpcClient rpcClient) {
+    return rpcClient.getAccountInfo(accounts.clockSysVar(), Clock.FACTORY);
   }
 
   @Override

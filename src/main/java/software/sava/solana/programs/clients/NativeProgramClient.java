@@ -5,13 +5,14 @@ import software.sava.core.accounts.PublicKey;
 import software.sava.core.accounts.SolanaAccounts;
 import software.sava.core.accounts.lookup.AddressLookupTable;
 import software.sava.core.accounts.meta.AccountMeta;
+import software.sava.core.accounts.sysvar.Clock;
 import software.sava.core.tx.Instruction;
+import software.sava.rpc.json.http.client.SolanaRpcClient;
+import software.sava.rpc.json.http.response.AccountInfo;
 import software.sava.solana.programs.stake.LockUp;
 import software.sava.solana.programs.stake.StakeAccount;
 import software.sava.solana.programs.stake.StakeProgram;
 import software.sava.solana.programs.stake.StakeState;
-import software.sava.rpc.json.http.client.SolanaRpcClient;
-import software.sava.rpc.json.http.response.AccountInfo;
 
 import java.time.Instant;
 import java.util.List;
@@ -31,6 +32,8 @@ public interface NativeProgramClient {
   SolanaAccounts accounts();
 
   NativeProgramAccountClient createAccountClient(final AccountMeta owner);
+
+  CompletableFuture<AccountInfo<Clock>> fetchClockSysVar(final SolanaRpcClient rpcClient);
 
   Instruction computeUnitLimit(final int computeUnitLimit);
 
