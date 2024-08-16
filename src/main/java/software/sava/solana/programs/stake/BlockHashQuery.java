@@ -14,8 +14,10 @@ public sealed interface BlockHashQuery extends RustEnum
       case 0 -> None.read(_data, i);
       case 1 -> FeeCalculator.read(_data, i);
       case 2 -> All.read(_data, i);
-      default ->
-          throw new IllegalStateException(java.lang.String.format("Unexpected ordinal [%d] for enum [BlockHashQuery].", ordinal));
+      default -> throw new IllegalStateException(String.format(
+          "Unexpected ordinal [%d] for enum [BlockHashQuery].",
+          ordinal
+      ));
     };
   }
 
