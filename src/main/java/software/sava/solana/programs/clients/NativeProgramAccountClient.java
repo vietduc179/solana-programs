@@ -273,11 +273,18 @@ public interface NativeProgramAccountClient {
                                             final PublicKey staker);
 
   Instruction initializeStakeAccountChecked(final PublicKey unInitializedStakeAccount);
+  
+  Instruction deactivateStakeAccount(final StakeAccount delegatedStakeAccount);
+
+  List<Instruction> deactivateStakeAccountInfos(final Collection<AccountInfo<StakeAccount>> delegatedStakeAccounts);
+
+  List<Instruction> deactivateStakeAccounts(final Collection<StakeAccount> delegatedStakeAccounts);
 
   Instruction withdrawStakeAccount(final StakeAccount stakeAccount, final long lamports);
 
-  default Instruction closeStakeAccount(final AccountInfo<StakeAccount> stakeAccount) {
-    return withdrawStakeAccount(stakeAccount.data(), stakeAccount.lamports());
+  default Instruction closeStakeAccount(final AccountInfo<StakeAccount> stakeAccountInfo) {
+    final var stakeAccount = stakeAccountInfo.data();
+    return withdrawStakeAccount(stakeAccount, stakeAccountInfo.lamports() + stakeAccount.stake());
   }
 
   default List<Instruction> closeStakeAccounts(final Collection<AccountInfo<StakeAccount>> stakeAccounts) {

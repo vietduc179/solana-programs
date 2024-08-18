@@ -19,6 +19,7 @@ import software.sava.solana.programs.system.SystemProgram;
 import software.sava.solana.programs.token.AssociatedTokenProgram;
 import software.sava.solana.programs.token.TokenProgram;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -523,6 +524,21 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
         owner,
         owner
     );
+  }
+
+  @Override
+  public Instruction deactivateStakeAccount(final StakeAccount delegatedStakeAccount) {
+    return nativeProgramClient.deactivateStakeAccount(delegatedStakeAccount);
+  }
+
+  @Override
+  public List<Instruction> deactivateStakeAccountInfos(final Collection<AccountInfo<StakeAccount>> delegatedStakeAccounts) {
+    return nativeProgramClient.deactivateStakeAccountInfos(delegatedStakeAccounts);
+  }
+
+  @Override
+  public List<Instruction> deactivateStakeAccounts(final Collection<StakeAccount> delegatedStakeAccounts) {
+    return nativeProgramClient.deactivateStakeAccounts(delegatedStakeAccounts);
   }
 
   @Override
