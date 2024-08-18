@@ -25,12 +25,13 @@ ext {
   REPO = 'solana-programs'
   VCS_URL = 'https://github.com/sava-software/solana-programs'
 
-  jsoniter = '2.11.+'
+  jsoniter = '[2,)'
 
   bouncycastleMinor = 'jdk18on'
   bouncycastlePatch = '1.78.1' // https://www.bouncycastle.org/latest_releases.html#LATEST
 
-  sava = '1.2.5'
+
+  sava = '[1,)'
 }
 
 apply plugin: 'java-library'

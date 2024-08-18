@@ -89,14 +89,6 @@ public interface NativeProgramAccountClient {
 
   NativeProgramClient nativeProgramClient();
 
-  Transaction createTransaction(final PublicKey feePayer, final Instruction instruction);
-
-  Transaction createTransaction(final PublicKey feePayer, final List<Instruction> instructions);
-
-  Transaction createTransaction(final AccountMeta feePayer, final Instruction instruction);
-
-  Transaction createTransaction(final AccountMeta feePayer, final List<Instruction> instructions);
-
   Transaction createTransaction(final PublicKey feePayer,
                                 final int computeUnitLimit,
                                 final long microLamportComputeUnitPrice,
@@ -122,22 +114,6 @@ public interface NativeProgramAccountClient {
   Transaction createTransaction(final int computeUnitLimit,
                                 final long microLamportComputeUnitPrice,
                                 final Transaction instruction);
-
-  Transaction createTransaction(final PublicKey feePayer,
-                                final Instruction instruction,
-                                final AddressLookupTable lookupTable);
-
-  Transaction createTransaction(final PublicKey feePayer,
-                                final List<Instruction> instructions,
-                                final AddressLookupTable lookupTable);
-
-  Transaction createTransaction(final AccountMeta feePayer,
-                                final Instruction instruction,
-                                final AddressLookupTable lookupTable);
-
-  Transaction createTransaction(final AccountMeta feePayer,
-                                final List<Instruction> instructions,
-                                final AddressLookupTable lookupTable);
 
   Transaction createTransaction(final PublicKey feePayer,
                                 final int computeUnitLimit,
@@ -166,22 +142,6 @@ public interface NativeProgramAccountClient {
                                 final long microLamportComputeUnitPrice,
                                 final List<Instruction> instructions,
                                 final AddressLookupTable lookupTable);
-
-  Transaction createTransaction(final PublicKey feePayer,
-                                final Instruction instruction,
-                                final LookupTableAccountMeta[] tableAccountMetas);
-
-  Transaction createTransaction(final PublicKey feePayer,
-                                final List<Instruction> instructions,
-                                final LookupTableAccountMeta[] tableAccountMetas);
-
-  Transaction createTransaction(final AccountMeta feePayer,
-                                final Instruction instruction,
-                                final LookupTableAccountMeta[] tableAccountMetas);
-
-  Transaction createTransaction(final AccountMeta feePayer,
-                                final List<Instruction> instructions,
-                                final LookupTableAccountMeta[] tableAccountMetas);
 
   Transaction createTransaction(final PublicKey feePayer,
                                 final int computeUnitLimit,
@@ -320,7 +280,9 @@ public interface NativeProgramAccountClient {
     return withdrawStakeAccount(stakeAccount.data(), stakeAccount.lamports());
   }
 
-  List<Instruction> closeStakeAccounts(final Collection<AccountInfo<StakeAccount>> stakeAccounts);
+  default List<Instruction> closeStakeAccounts(final Collection<AccountInfo<StakeAccount>> stakeAccounts) {
+    return stakeAccounts.stream().map(this::closeStakeAccount).toList();
+  }
 
   ProgramDerivedAddress findLookupTableAddress(final long recentSlot);
 

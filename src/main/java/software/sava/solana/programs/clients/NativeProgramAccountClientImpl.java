@@ -19,7 +19,6 @@ import software.sava.solana.programs.system.SystemProgram;
 import software.sava.solana.programs.token.AssociatedTokenProgram;
 import software.sava.solana.programs.token.TokenProgram;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -79,26 +78,6 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   }
 
   @Override
-  public Transaction createTransaction(final PublicKey feePayer, final Instruction instruction) {
-    return Transaction.createTx(feePayer, instruction);
-  }
-
-  @Override
-  public Transaction createTransaction(final PublicKey feePayer, final List<Instruction> instructions) {
-    return Transaction.createTx(feePayer, instructions);
-  }
-
-  @Override
-  public Transaction createTransaction(final AccountMeta feePayer, final Instruction instruction) {
-    return Transaction.createTx(feePayer, instruction);
-  }
-
-  @Override
-  public Transaction createTransaction(final AccountMeta feePayer, final List<Instruction> instructions) {
-    return Transaction.createTx(feePayer, instructions);
-  }
-
-  @Override
   public Transaction createTransaction(final PublicKey feePayer,
                                        final int computeUnitLimit,
                                        final long microLamportComputeUnitPrice,
@@ -124,12 +103,12 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public Transaction createTransaction(final Instruction instruction) {
-    return createTransaction(feePayer, instruction);
+    return Transaction.createTx(feePayer, instruction);
   }
 
   @Override
   public Transaction createTransaction(final List<Instruction> instructions) {
-    return createTransaction(feePayer, instructions);
+    return Transaction.createTx(feePayer, instructions);
   }
 
   @Override
@@ -154,34 +133,6 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
         nativeProgramClient.computeUnitLimit(computeUnitLimit + COMPUTE_UNITS_CONSUMED),
         nativeProgramClient.computeUnitPrice(microLamportComputeUnitPrice)
     );
-  }
-
-  @Override
-  public Transaction createTransaction(final PublicKey feePayer,
-                                       final Instruction instruction,
-                                       final AddressLookupTable lookupTable) {
-    return Transaction.createTx(feePayer, List.of(instruction), lookupTable);
-  }
-
-  @Override
-  public Transaction createTransaction(final PublicKey feePayer,
-                                       final List<Instruction> instructions,
-                                       final AddressLookupTable lookupTable) {
-    return Transaction.createTx(feePayer, instructions, lookupTable);
-  }
-
-  @Override
-  public Transaction createTransaction(final AccountMeta feePayer,
-                                       final Instruction instruction,
-                                       final AddressLookupTable lookupTable) {
-    return Transaction.createTx(feePayer, List.of(instruction), lookupTable);
-  }
-
-  @Override
-  public Transaction createTransaction(final AccountMeta feePayer,
-                                       final List<Instruction> instructions,
-                                       final AddressLookupTable lookupTable) {
-    return Transaction.createTx(feePayer, instructions, lookupTable);
   }
 
   @Override
@@ -216,12 +167,12 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public Transaction createTransaction(final Instruction instruction, final AddressLookupTable lookupTable) {
-    return createTransaction(feePayer, instruction, lookupTable);
+    return Transaction.createTx(feePayer, List.of(instruction), lookupTable);
   }
 
   @Override
   public Transaction createTransaction(final List<Instruction> instructions, final AddressLookupTable lookupTable) {
-    return createTransaction(feePayer, instructions, lookupTable);
+    return Transaction.createTx(feePayer, instructions, lookupTable);
   }
 
   @Override
@@ -243,34 +194,6 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
         microLamportComputeUnitPrice,
         Transaction.createTx(feePayer, instructions, lookupTable)
     );
-  }
-
-  @Override
-  public Transaction createTransaction(final PublicKey feePayer,
-                                       final Instruction instruction,
-                                       final LookupTableAccountMeta[] tableAccountMetas) {
-    return Transaction.createTx(feePayer, List.of(instruction), tableAccountMetas);
-  }
-
-  @Override
-  public Transaction createTransaction(final PublicKey feePayer,
-                                       final List<Instruction> instructions,
-                                       final LookupTableAccountMeta[] tableAccountMetas) {
-    return Transaction.createTx(feePayer, instructions, tableAccountMetas);
-  }
-
-  @Override
-  public Transaction createTransaction(final AccountMeta feePayer,
-                                       final Instruction instruction,
-                                       final LookupTableAccountMeta[] tableAccountMetas) {
-    return Transaction.createTx(feePayer, List.of(instruction), tableAccountMetas);
-  }
-
-  @Override
-  public Transaction createTransaction(final AccountMeta feePayer,
-                                       final List<Instruction> instructions,
-                                       final LookupTableAccountMeta[] tableAccountMetas) {
-    return Transaction.createTx(feePayer, instructions, tableAccountMetas);
   }
 
   @Override
@@ -305,12 +228,12 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public Transaction createTransaction(final Instruction instruction, final LookupTableAccountMeta[] tableAccountMetas) {
-    return createTransaction(feePayer, instruction, tableAccountMetas);
+    return Transaction.createTx(feePayer, List.of(instruction), tableAccountMetas);
   }
 
   @Override
   public Transaction createTransaction(final List<Instruction> instructions, final LookupTableAccountMeta[] tableAccountMetas) {
-    return createTransaction(feePayer, instructions, tableAccountMetas);
+    return Transaction.createTx(feePayer, instructions, tableAccountMetas);
   }
 
   @Override
@@ -609,11 +532,6 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
         owner,
         lamports
     );
-  }
-
-  @Override
-  public List<Instruction> closeStakeAccounts(final Collection<AccountInfo<StakeAccount>> stakeAccounts) {
-    return stakeAccounts.stream().map(this::closeStakeAccount).toList();
   }
 
   @Override
