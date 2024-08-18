@@ -10,7 +10,6 @@ import software.sava.core.tx.Transaction;
 import software.sava.rpc.json.http.client.SolanaRpcClient;
 import software.sava.rpc.json.http.response.AccountInfo;
 import software.sava.solana.programs.stake.StakeAccount;
-import software.sava.solana.programs.stake.StakeProgram;
 import software.sava.solana.programs.stake.StakeState;
 
 import java.util.Collection;
@@ -19,41 +18,72 @@ import java.util.concurrent.CompletableFuture;
 
 public interface NativeProgramAccountClient {
 
-  static NativeProgramAccountClient createClient(final SolanaAccounts accounts, final AccountMeta owner) {
-    return new NativeProgramAccountClientImpl(accounts, owner);
+  static NativeProgramAccountClient createClient(final SolanaAccounts accounts,
+                                                 final AccountMeta ownerAndFeePayer) {
+    return new NativeProgramAccountClientImpl(accounts, ownerAndFeePayer.publicKey(), ownerAndFeePayer);
   }
 
-  static NativeProgramAccountClient createClient(final SolanaAccounts accounts, final PublicKey owner) {
-    return createClient(accounts, AccountMeta.createWritableSigner(owner));
+  static NativeProgramAccountClient createClient(final SolanaAccounts accounts,
+                                                 final PublicKey ownerAndFeePayer) {
+    return createClient(accounts, AccountMeta.createFeePayer(ownerAndFeePayer));
   }
 
-  static NativeProgramAccountClient createClient(final SolanaAccounts accounts, final Signer owner) {
-    return createClient(accounts, AccountMeta.createFeePayer(owner.publicKey()));
+  static NativeProgramAccountClient createClient(final SolanaAccounts accounts,
+                                                 final Signer ownerAndFeePayer) {
+    return createClient(accounts, AccountMeta.createFeePayer(ownerAndFeePayer.publicKey()));
   }
 
-  static NativeProgramAccountClient createClient(final AccountMeta owner) {
-    return createClient(SolanaAccounts.MAIN_NET, owner);
+  static NativeProgramAccountClient createClient(final AccountMeta ownerAndFeePayer) {
+    return createClient(SolanaAccounts.MAIN_NET, ownerAndFeePayer);
   }
 
-  static NativeProgramAccountClient createClient(final PublicKey owner) {
-    return createClient(SolanaAccounts.MAIN_NET, AccountMeta.createWritableSigner(owner));
+  static NativeProgramAccountClient createClient(final PublicKey ownerAndFeePayer) {
+    return createClient(SolanaAccounts.MAIN_NET, ownerAndFeePayer);
   }
 
-  static NativeProgramAccountClient createClient(final Signer owner) {
-    return createClient(SolanaAccounts.MAIN_NET, AccountMeta.createFeePayer(owner.publicKey()));
+  static NativeProgramAccountClient createClient(final Signer ownerAndFeePayer) {
+    return createClient(SolanaAccounts.MAIN_NET, ownerAndFeePayer);
+  }
+
+  static NativeProgramAccountClient createClient(final SolanaAccounts accounts,
+                                                 final PublicKey owner,
+                                                 final AccountMeta feePayer) {
+    return new NativeProgramAccountClientImpl(accounts, owner, feePayer);
+  }
+
+  static NativeProgramAccountClient createClient(final SolanaAccounts accounts,
+                                                 final PublicKey owner,
+                                                 final PublicKey feePayer) {
+    return createClient(accounts, owner, AccountMeta.createFeePayer(feePayer));
+  }
+
+  static NativeProgramAccountClient createClient(final SolanaAccounts accounts,
+                                                 final PublicKey owner,
+                                                 final Signer feePayer) {
+    return createClient(accounts, owner, AccountMeta.createFeePayer(feePayer.publicKey()));
+  }
+
+  static NativeProgramAccountClient createClient(final PublicKey owner, final AccountMeta feePayer) {
+    return createClient(SolanaAccounts.MAIN_NET, owner, feePayer);
+  }
+
+  static NativeProgramAccountClient createClient(final PublicKey owner, final PublicKey feePayer) {
+    return createClient(SolanaAccounts.MAIN_NET, owner, feePayer);
+  }
+
+  static NativeProgramAccountClient createClient(final PublicKey owner, final Signer feePayer) {
+    return createClient(SolanaAccounts.MAIN_NET, owner, feePayer);
   }
 
   static CompletableFuture<Long> getMinimumBalanceForStakeAccount(final SolanaRpcClient rpcClient) {
     return rpcClient.getMinimumBalanceForRentExemption(StakeAccount.BYTES);
   }
 
-  AccountMeta owner();
+  PublicKey ownerPublicKey();
 
-  default PublicKey ownerPublicKey() {
-    return owner().publicKey();
-  }
+  AccountMeta feePayer();
 
-  SolanaAccounts accounts();
+  SolanaAccounts solanaAccounts();
 
   ProgramDerivedAddress wrappedSolPDA();
 
@@ -212,7 +242,9 @@ public interface NativeProgramAccountClient {
                                            final long space,
                                            final PublicKey programOwner);
 
-  AccountWithSeed createOffCurveAccountWithSeed(final String asciiSeed);
+  AccountWithSeed createOffCurveAccountWithSeed(final String asciiSeed, final PublicKey programId);
+
+  AccountWithSeed createOffCurveStakeAccountWithSeed(final String asciiSeed);
 
   CompletableFuture<List<AccountInfo<StakeAccount>>> fetchStakeAccountsByStakeAuthority(final SolanaRpcClient rpcClient,
                                                                                         final StakeState stakeState);
@@ -237,8 +269,15 @@ public interface NativeProgramAccountClient {
   Instruction allocateStakeAccountWithSeed(final AccountWithSeed accountWithSeed);
 
   Instruction transferSolLamportsWithSeed(final AccountWithSeed accountWithSeed,
+                                          final PublicKey recipientAccount,
                                           final long lamports,
                                           final PublicKey programOwner);
+
+  default Instruction transferSolLamportsWithSeed(final AccountWithSeed accountWithSeed,
+                                                  final long lamports,
+                                                  final PublicKey programOwner) {
+    return transferSolLamportsWithSeed(accountWithSeed, ownerPublicKey(), lamports, programOwner);
+  }
 
   Instruction transferToken(final PublicKey fromTokenAccount,
                             final PublicKey toTokenAccount,
@@ -265,96 +304,20 @@ public interface NativeProgramAccountClient {
 
   Instruction createATA(final boolean idempotent, final PublicKey mint);
 
-  Instruction deactivateStakeAccount(final PublicKey delegatedStakeAccount);
-
-  default Instruction deactivateStakeAccount(final StakeAccount delegatedStakeAccount) {
-    return deactivateStakeAccount(delegatedStakeAccount.address());
-  }
-
-  default Instruction deactivateStakeAccount(final AccountInfo<StakeAccount> delegatedStakeAccount) {
-    return deactivateStakeAccount(delegatedStakeAccount.pubKey());
-  }
-
-  List<Instruction> deactivateStakeAccountInfos(final Collection<AccountInfo<StakeAccount>> delegatedStakeAccounts);
-
-  List<Instruction> deactivateStakeAccounts(final Collection<StakeAccount> delegatedStakeAccounts);
-
-  List<Instruction> deactivateStakeAccountKeys(final Collection<PublicKey> delegatedStakeAccounts);
-
-  Instruction initializeStakeAccountWithStaker(final PublicKey unInitializedStakeAccount,
-                                               final PublicKey staker);
-
-  Instruction initializeStakeAccountWithWithdrawer(final PublicKey unInitializedStakeAccount,
-                                                   final PublicKey withdrawer);
+  Instruction initializeStakeAccount(final PublicKey unInitializedStakeAccount,
+                                     final PublicKey staker);
 
   Instruction initializeStakeAccount(final PublicKey unInitializedStakeAccount);
 
   Instruction initializeStakeAccountChecked(final PublicKey unInitializedStakeAccount,
                                             final PublicKey staker);
 
-  Instruction initializeStakeAccountChecked(final PublicKey unInitializedStakeAccount,
-                                            final AccountMeta withdrawer);
-
   Instruction initializeStakeAccountChecked(final PublicKey unInitializedStakeAccount);
 
-  Instruction authorizeStakeAccount(final PublicKey stakeAccount,
-                                    final PublicKey newAuthority,
-                                    final StakeProgram.StakeAuthorize stakeAuthorize);
-
-  Instruction delegateStakeAccount(final PublicKey initializedStakeAccount,
-                                   final PublicKey validatorVoteAccount);
-
-  Instruction reDelegateStakeAccount(final PublicKey delegatedStakeAccount,
-                                     final PublicKey uninitializedStakeAccount,
-                                     final PublicKey validatorVoteAccount);
-
-  Instruction splitStakeAccount(final PublicKey splitStakeAccount,
-                                final PublicKey unInitializedStakeAccount,
-                                final long lamports);
-
-  Instruction mergeStakeAccounts(final PublicKey destinationStakeAccount,
-                                 final PublicKey srcStakeAccount);
-
-  default Instruction mergeStakeAccounts(final StakeAccount destinationStakeAccount,
-                                         final StakeAccount srcStakeAccount) {
-    return mergeStakeAccounts(destinationStakeAccount.address(), srcStakeAccount.address());
-  }
-
-  default Instruction mergeStakeAccounts(final AccountInfo<StakeAccount> destinationStakeAccount,
-                                         final AccountInfo<StakeAccount> srcStakeAccount) {
-    return mergeStakeAccounts(destinationStakeAccount.pubKey(), srcStakeAccount.pubKey());
-  }
-
-  List<Instruction> mergeStakeAccountInto(final PublicKey destinationStakeAccount, final Collection<PublicKey> stakeAccounts);
-
-  List<Instruction> mergeStakeAccountsInto(final StakeAccount destinationStakeAccount, final Collection<StakeAccount> stakeAccounts);
-
-  List<Instruction> mergeStakeAccountsInto(final AccountInfo<StakeAccount> destinationStakeAccount, final Collection<AccountInfo<StakeAccount>> stakeAccounts);
-
-  List<Instruction> mergeStakeAccountKeys(final List<PublicKey> stakeAccounts);
-
-  List<Instruction> mergeStakeAccounts(final List<StakeAccount> stakeAccounts);
-
-  List<Instruction> mergeStakeAccountInfos(final List<AccountInfo<StakeAccount>> stakeAccounts);
-
-  List<Instruction> mergeStakeAccountKeys(final Collection<PublicKey> stakeAccounts);
-
-  List<Instruction> mergeStakeAccounts(final Collection<StakeAccount> stakeAccounts);
-
-  List<Instruction> mergeStakeAccountInfos(final Collection<AccountInfo<StakeAccount>> stakeAccounts);
-
-  Instruction withdrawStakeAccount(final PublicKey stakeAccount,
-                                   final AccountMeta lockupAuthority,
-                                   final long lamports);
-
-  Instruction withdrawStakeAccount(final PublicKey stakeAccount, final long lamports);
-
-  default Instruction withdrawStakeAccount(final StakeAccount stakeAccount, final long lamports) {
-    return withdrawStakeAccount(stakeAccount.address(), lamports);
-  }
+  Instruction withdrawStakeAccount(final StakeAccount stakeAccount, final long lamports);
 
   default Instruction closeStakeAccount(final AccountInfo<StakeAccount> stakeAccount) {
-    return withdrawStakeAccount(stakeAccount.pubKey(), stakeAccount.lamports());
+    return withdrawStakeAccount(stakeAccount.data(), stakeAccount.lamports());
   }
 
   List<Instruction> closeStakeAccounts(final Collection<AccountInfo<StakeAccount>> stakeAccounts);

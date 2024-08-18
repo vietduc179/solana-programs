@@ -3,16 +3,65 @@ package software.sava.solana.programs.token;
 import software.sava.core.accounts.ProgramDerivedAddress;
 import software.sava.core.accounts.PublicKey;
 import software.sava.core.accounts.SolanaAccounts;
-import software.sava.core.accounts.meta.AccountMeta;
 import software.sava.core.tx.Instruction;
 
 import java.util.List;
 
-// https://github.com/solana-labs/solana-program-library/blob/d0f48a6ba34acb01dd0fde5368e73b406c544837/associated-token-account/program/src/instruction.rs#L15
+import static software.sava.core.accounts.meta.AccountMeta.*;
+
 public final class AssociatedTokenProgram {
 
-  private static final byte[] CREATE = new byte[]{0};
-  private static final byte[] CREATE_IDEMPOTENT = new byte[]{1};
+  private enum AssociatedTokenAccountInstruction {
+    // https://github.com/solana-labs/solana-program-library/blob/d0f48a6ba34acb01dd0fde5368e73b406c544837/associated-token-account/program/src/instruction.rs#L15
+
+    /// Creates an associated token account for the given wallet address and
+    /// token mint Returns an error if the account exists.
+    ///
+    ///   0. `[writeable,signer]` Funding account (must be a system account)
+    ///   1. `[writeable]` Associated token account address to be created
+    ///   2. `[]` Wallet address for the new associated token account
+    ///   3. `[]` The token mint for the new associated token account
+    ///   4. `[]` System program
+    ///   5. `[]` SPL Token program
+    Create,
+    /// Creates an associated token account for the given wallet address and
+    /// token mint, if it doesn't already exist.  Returns an error if the
+    /// account exists, but with a different owner.
+    ///
+    ///   0. `[writeable,signer]` Funding account (must be a system account)
+    ///   1. `[writeable]` Associated token account address to be created
+    ///   2. `[]` Wallet address for the new associated token account
+    ///   3. `[]` The token mint for the new associated token account
+    ///   4. `[]` System program
+    ///   5. `[]` SPL Token program
+    CreateIdempotent,
+    /// Transfers from and closes a nested associated token account: an
+    /// associated token account owned by an associated token account.
+    ///
+    /// The tokens are moved from the nested associated token account to the
+    /// wallet's associated token account, and the nested account lamports are
+    /// moved to the wallet.
+    ///
+    /// Note: Nested token accounts are an anti-pattern, and almost always
+    /// created unintentionally, so this instruction should only be used to
+    /// recover from errors.
+    ///
+    ///   0. `[writeable]` Nested associated token account, must be owned by `3`
+    ///   1. `[]` Token mint for the nested associated token account
+    ///   2. `[writeable]` Wallet's associated token account
+    ///   3. `[]` Owner associated token account address, must be owned by `5`
+    ///   4. `[]` Token mint for the owner associated token account
+    ///   5. `[writeable, signer]` Wallet address for the owner associated token
+    ///      account
+    ///   6. `[]` SPL Token program
+    RecoverNested;
+
+    private final byte[] discriminatorBytes;
+
+    AssociatedTokenAccountInstruction() {
+      this.discriminatorBytes = new byte[]{(byte) this.ordinal()};
+    }
+  }
 
   public static ProgramDerivedAddress findAssociatedTokenProgramAddress(final SolanaAccounts solanaAccounts,
                                                                         final PublicKey owner,
@@ -26,28 +75,30 @@ public final class AssociatedTokenProgram {
 
   public static Instruction createATA(final boolean idempotent,
                                       final SolanaAccounts solanaAccounts,
-                                      final AccountMeta fundingAccount,
+                                      final PublicKey fundingAccount,
                                       final PublicKey programDerivedAddress,
                                       final PublicKey owner,
                                       final PublicKey mint) {
     final var keys = List.of(
-        fundingAccount,
-        AccountMeta.createWrite(programDerivedAddress),
-        AccountMeta.createRead(owner),
-        AccountMeta.createRead(mint),
+        createWritableSigner(fundingAccount),
+        createWrite(programDerivedAddress),
+        createRead(owner),
+        createRead(mint),
         solanaAccounts.readSystemProgram(),
         solanaAccounts.readTokenProgram()
     );
     return Instruction.createInstruction(
         solanaAccounts.invokedAssociatedTokenAccountProgram(),
         keys,
-        idempotent ? CREATE_IDEMPOTENT : CREATE
+        idempotent
+            ? AssociatedTokenAccountInstruction.CreateIdempotent.discriminatorBytes
+            : AssociatedTokenAccountInstruction.Create.discriminatorBytes
     );
   }
 
   public static Instruction createATA(final boolean idempotent,
                                       final SolanaAccounts solanaAccounts,
-                                      final AccountMeta fundingAccount,
+                                      final PublicKey fundingAccount,
                                       final PublicKey owner,
                                       final PublicKey mint) {
     final var programDerivedAddress = findAssociatedTokenProgramAddress(solanaAccounts, owner, mint);
@@ -56,9 +107,9 @@ public final class AssociatedTokenProgram {
 
   public static Instruction createATA(final boolean idempotent,
                                       final SolanaAccounts solanaAccounts,
-                                      final AccountMeta fundingAccount,
+                                      final PublicKey fundingAccount,
                                       final PublicKey mint) {
-    return createATA(idempotent, solanaAccounts, fundingAccount, fundingAccount.publicKey(), mint);
+    return createATA(idempotent, solanaAccounts, fundingAccount, fundingAccount, mint);
   }
 
   private AssociatedTokenProgram() {

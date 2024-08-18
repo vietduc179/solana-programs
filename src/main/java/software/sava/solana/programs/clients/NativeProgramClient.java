@@ -15,6 +15,7 @@ import software.sava.solana.programs.stake.StakeProgram;
 import software.sava.solana.programs.stake.StakeState;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.OptionalLong;
 import java.util.concurrent.CompletableFuture;
@@ -31,7 +32,9 @@ public interface NativeProgramClient {
 
   SolanaAccounts accounts();
 
-  NativeProgramAccountClient createAccountClient(final AccountMeta owner);
+  NativeProgramAccountClient createAccountClient(final AccountMeta ownerAndFeePayer);
+
+  NativeProgramAccountClient createAccountClient(final PublicKey owner, final AccountMeta feePayer);
 
   CompletableFuture<AccountInfo<Clock>> fetchClockSysVar(final SolanaRpcClient rpcClient);
 
@@ -120,47 +123,47 @@ public interface NativeProgramClient {
                                         final PublicKey referenceVoteAccount);
 
   Instruction setStakeAccountLockup(final PublicKey initializedStakeAccount,
-                                    final AccountMeta lockupOrWithdrawAuthority,
+                                    final PublicKey lockupOrWithdrawAuthority,
                                     final Instant timestamp,
                                     final OptionalLong epoch,
                                     final PublicKey custodian);
 
   Instruction setStakeAccountLockupChecked(final PublicKey initializedStakeAccount,
-                                           final AccountMeta lockupOrWithdrawAuthority,
+                                           final PublicKey lockupOrWithdrawAuthority,
                                            final Instant timestamp,
                                            final OptionalLong epoch);
 
   Instruction setStakeAccountLockupChecked(final PublicKey initializedStakeAccount,
-                                           final AccountMeta lockupOrWithdrawAuthority,
-                                           final AccountMeta newLockupAuthority,
+                                           final PublicKey lockupOrWithdrawAuthority,
+                                           final PublicKey newLockupAuthority,
                                            final Instant timestamp,
                                            final OptionalLong epoch);
 
   Instruction authorizeStakeAccount(final PublicKey stakeAccount,
-                                    final AccountMeta stakeOrWithdrawAuthority,
-                                    final AccountMeta lockupAuthority,
+                                    final PublicKey stakeOrWithdrawAuthority,
+                                    final PublicKey lockupAuthority,
                                     final PublicKey newAuthority,
                                     final StakeProgram.StakeAuthorize stakeAuthorize);
 
   Instruction authorizeStakeAccount(final PublicKey stakeAccount,
-                                    final AccountMeta stakeOrWithdrawAuthority,
+                                    final PublicKey stakeOrWithdrawAuthority,
                                     final PublicKey newAuthority,
                                     final StakeProgram.StakeAuthorize stakeAuthorize);
 
   Instruction authorizeStakeAccountChecked(final PublicKey stakeAccount,
-                                           final AccountMeta stakeOrWithdrawAuthority,
-                                           final AccountMeta newStakeOrWithdrawAuthority,
-                                           final AccountMeta lockupAuthority,
+                                           final PublicKey stakeOrWithdrawAuthority,
+                                           final PublicKey newStakeOrWithdrawAuthority,
+                                           final PublicKey lockupAuthority,
                                            final StakeProgram.StakeAuthorize stakeAuthorize);
 
   Instruction authorizeStakeAccountChecked(final PublicKey stakeAccount,
-                                           final AccountMeta stakeOrWithdrawAuthority,
-                                           final AccountMeta newStakeOrWithdrawAuthority,
+                                           final PublicKey stakeOrWithdrawAuthority,
+                                           final PublicKey newStakeOrWithdrawAuthority,
                                            final StakeProgram.StakeAuthorize stakeAuthorize);
 
   Instruction authorizeStakeAccountWithSeed(final PublicKey stakeAccount,
                                             final AccountWithSeed baseKeyOrWithdrawAuthority,
-                                            final AccountMeta lockupAuthority,
+                                            final PublicKey lockupAuthority,
                                             final PublicKey newAuthorizedPublicKey,
                                             final StakeProgram.StakeAuthorize stakeAuthorize,
                                             final PublicKey authorityOwner);
@@ -173,8 +176,8 @@ public interface NativeProgramClient {
 
   Instruction authorizeStakeAccountCheckedWithSeed(final PublicKey stakeAccount,
                                                    final AccountWithSeed baseKeyOrWithdrawAuthority,
-                                                   final AccountMeta stakeOrWithdrawAuthority,
-                                                   final AccountMeta lockupAuthority,
+                                                   final PublicKey stakeOrWithdrawAuthority,
+                                                   final PublicKey lockupAuthority,
                                                    final StakeProgram.StakeAuthorize stakeAuthorize,
                                                    final PublicKey authorityOwner);
 
@@ -189,25 +192,22 @@ public interface NativeProgramClient {
 
   Instruction initializeStakeAccountChecked(final PublicKey unInitializedStakeAccount,
                                             final PublicKey staker,
-                                            final AccountMeta withdrawer);
+                                            final PublicKey withdrawer);
 
-  Instruction splitStakeAccount(final PublicKey splitStakeAccount,
+  Instruction splitStakeAccount(final StakeAccount splitStakeAccount,
                                 final PublicKey unInitializedStakeAccount,
-                                final AccountMeta stakeAuthority,
                                 final long lamports);
 
-  Instruction mergeStakeAccounts(final PublicKey destinationStakeAccount,
-                                 final PublicKey srcStakeAccount,
-                                 final AccountMeta stakeAuthority);
+  Instruction mergeStakeAccounts(final StakeAccount destinationStakeAccount,
+                                 final PublicKey srcStakeAccount);
 
-  Instruction withdrawStakeAccount(final PublicKey stakeAccount,
+  Instruction withdrawStakeAccount(final StakeAccount stakeAccount,
                                    final PublicKey recipient,
-                                   final AccountMeta withdrawAuthority,
                                    final long lamports);
 
-  Instruction withdrawStakeAccount(final PublicKey stakeAccount,
-                                   final PublicKey recipient,
-                                   final AccountMeta withdrawAuthority,
-                                   final AccountMeta lockupAuthority,
-                                   final long lamports);
+  Instruction deactivateStakeAccount(final StakeAccount delegatedStakeAccount);
+
+  List<Instruction> deactivateStakeAccountInfos(final Collection<AccountInfo<StakeAccount>> delegatedStakeAccounts);
+
+  List<Instruction> deactivateStakeAccounts(final Collection<StakeAccount> delegatedStakeAccounts);
 }

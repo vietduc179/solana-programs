@@ -286,14 +286,14 @@ public final class StakeProgram {
   public static Instruction withdraw(final SolanaAccounts solanaAccounts,
                                      final PublicKey stakeAccount,
                                      final PublicKey recipient,
-                                     final AccountMeta withdrawAuthority,
+                                     final PublicKey withdrawAuthority,
                                      final long lamports) {
     final var keys = List.of(
         createWrite(stakeAccount),
         createWrite(recipient),
         solanaAccounts.readClockSysVar(),
         solanaAccounts.readStakeHistorySysVar(),
-        withdrawAuthority
+        createReadOnlySigner(withdrawAuthority)
     );
     return withdraw(solanaAccounts, keys, lamports);
   }
@@ -301,8 +301,8 @@ public final class StakeProgram {
   public static Instruction withdraw(final SolanaAccounts solanaAccounts,
                                      final PublicKey stakeAccount,
                                      final PublicKey recipient,
-                                     final AccountMeta withdrawAuthority,
-                                     final AccountMeta lockupAuthority,
+                                     final PublicKey withdrawAuthority,
+                                     final PublicKey lockupAuthority,
                                      final long lamports) {
     if (lockupAuthority == null) {
       return withdraw(solanaAccounts, stakeAccount, recipient, withdrawAuthority, lamports);
@@ -312,8 +312,8 @@ public final class StakeProgram {
         createWrite(recipient),
         solanaAccounts.readClockSysVar(),
         solanaAccounts.readStakeHistorySysVar(),
-        withdrawAuthority,
-        lockupAuthority
+        createReadOnlySigner(withdrawAuthority),
+        createReadOnlySigner(lockupAuthority)
     );
     return withdraw(solanaAccounts, keys, lamports);
   }
@@ -321,12 +321,12 @@ public final class StakeProgram {
   public static Instruction split(final SolanaAccounts solanaAccounts,
                                   final PublicKey splitStakeAccount,
                                   final PublicKey unInitializedStakeAccount,
-                                  final AccountMeta stakeAuthority,
+                                  final PublicKey stakeAuthority,
                                   final long lamports) {
     final var keys = List.of(
         createWrite(splitStakeAccount),
         createWrite(unInitializedStakeAccount),
-        stakeAuthority
+        createReadOnlySigner(stakeAuthority)
     );
 
 
@@ -340,13 +340,13 @@ public final class StakeProgram {
   public static Instruction merge(final SolanaAccounts solanaAccounts,
                                   final PublicKey destinationStakeAccount,
                                   final PublicKey srcStakeAccount,
-                                  final AccountMeta stakeAuthority) {
+                                  final PublicKey stakeAuthority) {
     final var keys = List.of(
         createWrite(destinationStakeAccount),
         createWrite(srcStakeAccount),
         solanaAccounts.readClockSysVar(),
         solanaAccounts.readStakeHistorySysVar(),
-        stakeAuthority
+        createReadOnlySigner(stakeAuthority)
     );
 
     final byte[] data = serializeDiscriminator(StakeInstruction.Merge);
@@ -384,12 +384,12 @@ public final class StakeProgram {
   public static Instruction initializeChecked(final SolanaAccounts solanaAccounts,
                                               final PublicKey unInitializedStakeAccount,
                                               final PublicKey staker,
-                                              final AccountMeta withdrawer) {
+                                              final PublicKey withdrawer) {
     final var keys = List.of(
         createWrite(unInitializedStakeAccount),
         solanaAccounts.readRentSysVar(),
         createRead(staker),
-        withdrawer
+        createReadOnlySigner(withdrawer)
     );
 
     final byte[] data = serializeDiscriminator(StakeInstruction.InitializeChecked);
@@ -410,21 +410,21 @@ public final class StakeProgram {
 
   public static Instruction authorize(final SolanaAccounts solanaAccounts,
                                       final PublicKey stakeAccount,
-                                      final AccountMeta stakeOrWithdrawAuthority,
+                                      final PublicKey stakeOrWithdrawAuthority,
                                       final PublicKey newAuthority,
                                       final StakeAuthorize stakeAuthorize) {
     final var keys = List.of(
         createWrite(stakeAccount),
         solanaAccounts.readClockSysVar(),
-        stakeOrWithdrawAuthority
+        createReadOnlySigner(stakeOrWithdrawAuthority)
     );
     return authorize(solanaAccounts, keys, newAuthority, stakeAuthorize);
   }
 
   public static Instruction authorize(final SolanaAccounts solanaAccounts,
                                       final PublicKey stakeAccount,
-                                      final AccountMeta stakeOrWithdrawAuthority,
-                                      final AccountMeta lockupAuthority,
+                                      final PublicKey stakeOrWithdrawAuthority,
+                                      final PublicKey lockupAuthority,
                                       final PublicKey newAuthority,
                                       final StakeAuthorize stakeAuthorize) {
     if (lockupAuthority == null) {
@@ -436,8 +436,8 @@ public final class StakeProgram {
     final var keys = List.of(
         createWrite(stakeAccount),
         solanaAccounts.readClockSysVar(),
-        stakeOrWithdrawAuthority,
-        lockupAuthority
+        createReadOnlySigner(stakeOrWithdrawAuthority),
+        createReadOnlySigner(lockupAuthority)
     );
     return authorize(solanaAccounts, keys, newAuthority, stakeAuthorize);
   }
@@ -453,23 +453,23 @@ public final class StakeProgram {
 
   public static Instruction authorizeChecked(final SolanaAccounts solanaAccounts,
                                              final PublicKey stakeAccount,
-                                             final AccountMeta stakeOrWithdrawAuthority,
-                                             final AccountMeta newStakeOrWithdrawAuthority,
+                                             final PublicKey stakeOrWithdrawAuthority,
+                                             final PublicKey newStakeOrWithdrawAuthority,
                                              final StakeAuthorize stakeAuthorize) {
     final var keys = List.of(
         createWrite(stakeAccount),
         solanaAccounts.readClockSysVar(),
-        stakeOrWithdrawAuthority,
-        newStakeOrWithdrawAuthority
+        createReadOnlySigner(stakeOrWithdrawAuthority),
+        createReadOnlySigner(newStakeOrWithdrawAuthority)
     );
     return authorizeChecked(solanaAccounts, keys, stakeAuthorize);
   }
 
   public static Instruction authorizeChecked(final SolanaAccounts solanaAccounts,
                                              final PublicKey stakeAccount,
-                                             final AccountMeta stakeOrWithdrawAuthority,
-                                             final AccountMeta newStakeOrWithdrawAuthority,
-                                             final AccountMeta lockupAuthority,
+                                             final PublicKey stakeOrWithdrawAuthority,
+                                             final PublicKey newStakeOrWithdrawAuthority,
+                                             final PublicKey lockupAuthority,
                                              final StakeAuthorize stakeAuthorize) {
     if (lockupAuthority == null) {
       return authorizeChecked(
@@ -480,9 +480,9 @@ public final class StakeProgram {
     final var keys = List.of(
         createWrite(stakeAccount),
         solanaAccounts.readClockSysVar(),
-        stakeOrWithdrawAuthority,
-        newStakeOrWithdrawAuthority,
-        lockupAuthority
+        createReadOnlySigner(stakeOrWithdrawAuthority),
+        createReadOnlySigner(newStakeOrWithdrawAuthority),
+        createReadOnlySigner(lockupAuthority)
     );
     return authorizeChecked(solanaAccounts, keys, stakeAuthorize);
   }
@@ -525,7 +525,7 @@ public final class StakeProgram {
   public static Instruction authorizeWithSeed(final SolanaAccounts solanaAccounts,
                                               final PublicKey stakeAccount,
                                               final AccountWithSeed baseKeyOrWithdrawAuthority,
-                                              final AccountMeta lockupAuthority,
+                                              final PublicKey lockupAuthority,
                                               final PublicKey newAuthorizedPublicKey,
                                               final StakeAuthorize stakeAuthorize,
                                               final PublicKey authorityOwner) {
@@ -539,7 +539,7 @@ public final class StakeProgram {
         createWrite(stakeAccount),
         createReadOnlySigner(baseKeyOrWithdrawAuthority.publicKey()),
         solanaAccounts.readClockSysVar(),
-        lockupAuthority
+        createReadOnlySigner(lockupAuthority)
     );
     return authorizeWithSeed(solanaAccounts, keys, newAuthorizedPublicKey, stakeAuthorize, baseKeyOrWithdrawAuthority, authorityOwner);
   }
@@ -565,14 +565,14 @@ public final class StakeProgram {
   public static Instruction authorizeCheckedWithSeed(final SolanaAccounts solanaAccounts,
                                                      final PublicKey stakeAccount,
                                                      final AccountWithSeed baseKeyOrWithdrawAuthority,
-                                                     final AccountMeta stakeOrWithdrawAuthority,
+                                                     final PublicKey stakeOrWithdrawAuthority,
                                                      final StakeAuthorize stakeAuthorize,
                                                      final PublicKey authorityOwner) {
     final var keys = List.of(
         createWrite(stakeAccount),
         createReadOnlySigner(baseKeyOrWithdrawAuthority.publicKey()),
         solanaAccounts.readClockSysVar(),
-        stakeOrWithdrawAuthority
+        createReadOnlySigner(stakeOrWithdrawAuthority)
     );
     return authorizeCheckedWithSeed(solanaAccounts, keys, stakeAuthorize, baseKeyOrWithdrawAuthority, authorityOwner);
   }
@@ -580,8 +580,8 @@ public final class StakeProgram {
   public static Instruction authorizeCheckedWithSeed(final SolanaAccounts solanaAccounts,
                                                      final PublicKey stakeAccount,
                                                      final AccountWithSeed baseKeyOrWithdrawAuthority,
-                                                     final AccountMeta stakeOrWithdrawAuthority,
-                                                     final AccountMeta lockupAuthority,
+                                                     final PublicKey stakeOrWithdrawAuthority,
+                                                     final PublicKey lockupAuthority,
                                                      final StakeAuthorize stakeAuthorize,
                                                      final PublicKey authorityOwner) {
     if (lockupAuthority == null) {
@@ -594,21 +594,21 @@ public final class StakeProgram {
         createWrite(stakeAccount),
         createReadOnlySigner(baseKeyOrWithdrawAuthority.publicKey()),
         solanaAccounts.readClockSysVar(),
-        stakeOrWithdrawAuthority,
-        lockupAuthority
+        createReadOnlySigner(stakeOrWithdrawAuthority),
+        createReadOnlySigner(lockupAuthority)
     );
     return authorizeCheckedWithSeed(solanaAccounts, keys, stakeAuthorize, baseKeyOrWithdrawAuthority, authorityOwner);
   }
 
   public static Instruction setLockup(final SolanaAccounts solanaAccounts,
                                       final PublicKey initializedStakeAccount,
-                                      final AccountMeta lockupOrWithdrawAuthority,
+                                      final PublicKey lockupOrWithdrawAuthority,
                                       final Instant timestamp,
                                       final OptionalLong epoch,
                                       final PublicKey custodian) {
     final var keys = List.of(
         createWrite(initializedStakeAccount),
-        lockupOrWithdrawAuthority
+        createReadOnlySigner(lockupOrWithdrawAuthority)
     );
 
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH
@@ -641,20 +641,20 @@ public final class StakeProgram {
 
   public static Instruction setLockupChecked(final SolanaAccounts solanaAccounts,
                                              final PublicKey initializedStakeAccount,
-                                             final AccountMeta lockupOrWithdrawAuthority,
+                                             final PublicKey lockupOrWithdrawAuthority,
                                              final Instant timestamp,
                                              final OptionalLong epoch) {
     final var keys = List.of(
         createWrite(initializedStakeAccount),
-        lockupOrWithdrawAuthority
+        createReadOnlySigner(lockupOrWithdrawAuthority)
     );
     return setLockupChecked(solanaAccounts, keys, timestamp, epoch);
   }
 
   public static Instruction setLockupChecked(final SolanaAccounts solanaAccounts,
                                              final PublicKey initializedStakeAccount,
-                                             final AccountMeta lockupOrWithdrawAuthority,
-                                             final AccountMeta newLockupAuthority,
+                                             final PublicKey lockupOrWithdrawAuthority,
+                                             final PublicKey newLockupAuthority,
                                              final Instant timestamp,
                                              final OptionalLong epoch) {
     if (newLockupAuthority == null) {
@@ -665,8 +665,8 @@ public final class StakeProgram {
     }
     final var keys = List.of(
         createWrite(initializedStakeAccount),
-        lockupOrWithdrawAuthority,
-        newLockupAuthority
+        createReadOnlySigner(lockupOrWithdrawAuthority),
+        createReadOnlySigner(newLockupAuthority)
     );
     return setLockupChecked(solanaAccounts, keys, timestamp, epoch);
   }
@@ -689,11 +689,11 @@ public final class StakeProgram {
 
   public static Instruction deactivate(final SolanaAccounts solanaAccounts,
                                        final PublicKey delegatedStakeAccount,
-                                       final AccountMeta stakeAuthority) {
+                                       final PublicKey stakeAuthority) {
     final var keys = List.of(
         createWrite(delegatedStakeAccount),
         solanaAccounts.readClockSysVar(),
-        stakeAuthority
+        createReadOnlySigner(stakeAuthority)
     );
     return Instruction.createInstruction(
         solanaAccounts.invokedStakeProgram(),
@@ -705,14 +705,14 @@ public final class StakeProgram {
   public static Instruction delegateStake(final SolanaAccounts solanaAccounts,
                                           final PublicKey initializedStakeAccount,
                                           final PublicKey validatorVoteAccount,
-                                          final AccountMeta stakeAuthority) {
+                                          final PublicKey stakeAuthority) {
     final var keys = List.of(
         createWrite(initializedStakeAccount),
         createRead(validatorVoteAccount),
         solanaAccounts.readClockSysVar(),
         solanaAccounts.readStakeHistorySysVar(),
         solanaAccounts.readStakeConfig(),
-        stakeAuthority
+        createReadOnlySigner(stakeAuthority)
     );
     return Instruction.createInstruction(
         solanaAccounts.invokedStakeProgram(),
@@ -725,13 +725,13 @@ public final class StakeProgram {
                                        final PublicKey delegatedStakeAccount,
                                        final PublicKey uninitializedStakeAccount,
                                        final PublicKey validatorVoteAccount,
-                                       final AccountMeta stakeAuthority) {
+                                       final PublicKey stakeAuthority) {
     final var keys = List.of(
         createWrite(delegatedStakeAccount),
         createWrite(uninitializedStakeAccount),
         createRead(validatorVoteAccount),
         solanaAccounts.readStakeConfig(),
-        stakeAuthority
+        createReadOnlySigner(stakeAuthority)
     );
     return Instruction.createInstruction(
         solanaAccounts.invokedStakeProgram(),

@@ -3,14 +3,13 @@ package software.sava.solana.programs.address_lookup_table;
 import software.sava.core.accounts.ProgramDerivedAddress;
 import software.sava.core.accounts.PublicKey;
 import software.sava.core.accounts.SolanaAccounts;
-import software.sava.core.accounts.meta.AccountMeta;
 import software.sava.core.encoding.ByteUtil;
 import software.sava.core.tx.Instruction;
 
 import java.util.List;
 
 import static software.sava.core.accounts.PublicKey.PUBLIC_KEY_LENGTH;
-import static software.sava.core.accounts.meta.AccountMeta.createWrite;
+import static software.sava.core.accounts.meta.AccountMeta.*;
 import static software.sava.core.encoding.ByteUtil.putInt64LE;
 import static software.sava.core.programs.Discriminator.NATIVE_DISCRIMINATOR_LENGTH;
 import static software.sava.core.programs.Discriminator.serializeDiscriminator;
@@ -90,14 +89,14 @@ public final class AddressLookupTableProgram {
 
   public static Instruction createLookupTable(final SolanaAccounts solanaAccounts,
                                               final PublicKey uninitializedTableAccount,
-                                              final AccountMeta baseAndAuthorityKey,
-                                              final AccountMeta funderAccount,
+                                              final PublicKey baseAndAuthorityKey,
+                                              final PublicKey funderAccount,
                                               final long recentSlot,
                                               final int bumpSeed) {
     final var keys = List.of(
         createWrite(uninitializedTableAccount),
-        baseAndAuthorityKey,
-        funderAccount,
+        createReadOnlySigner(baseAndAuthorityKey),
+        createWritableSigner(funderAccount),
         solanaAccounts.readSystemProgram()
     );
 
@@ -111,10 +110,10 @@ public final class AddressLookupTableProgram {
 
   public static Instruction freezeLookupTable(final SolanaAccounts solanaAccounts,
                                               final PublicKey tableAccount,
-                                              final AccountMeta authorityAccount) {
+                                              final PublicKey authorityAccount) {
     final var keys = List.of(
         createWrite(tableAccount),
-        authorityAccount
+        createReadOnlySigner(authorityAccount)
     );
 
     final byte[] data = serializeDiscriminator(ProgramInstruction.FreezeLookupTable);
@@ -135,24 +134,24 @@ public final class AddressLookupTableProgram {
 
   public static Instruction extendLookupTable(final SolanaAccounts solanaAccounts,
                                               final PublicKey tableAccount,
-                                              final AccountMeta authorityAccount,
+                                              final PublicKey authorityAccount,
                                               final List<PublicKey> newAddresses) {
     final var keys = List.of(
         createWrite(tableAccount),
-        authorityAccount
+        createReadOnlySigner(authorityAccount)
     );
     return createInstruction(solanaAccounts.invokedAddressLookupTableProgram(), keys, createExtendTableData(newAddresses));
   }
 
   public static Instruction extendLookupTable(final SolanaAccounts solanaAccounts,
                                               final PublicKey tableAccount,
-                                              final AccountMeta authorityAccount,
-                                              final AccountMeta funderAccount,
+                                              final PublicKey authorityAccount,
+                                              final PublicKey funderAccount,
                                               final List<PublicKey> newAddresses) {
     final var keys = List.of(
         createWrite(tableAccount),
-        authorityAccount,
-        funderAccount,
+        createReadOnlySigner(authorityAccount),
+        createWritableSigner(funderAccount),
         solanaAccounts.readSystemProgram()
     );
     return createInstruction(solanaAccounts.invokedAddressLookupTableProgram(), keys, createExtendTableData(newAddresses));
@@ -160,10 +159,10 @@ public final class AddressLookupTableProgram {
 
   public static Instruction deactivateLookupTable(final SolanaAccounts solanaAccounts,
                                                   final PublicKey tableAccount,
-                                                  final AccountMeta authorityAccount) {
+                                                  final PublicKey authorityAccount) {
     final var keys = List.of(
         createWrite(tableAccount),
-        authorityAccount
+        createReadOnlySigner(authorityAccount)
     );
 
     final byte[] data = serializeDiscriminator(ProgramInstruction.DeactivateLookupTable);
@@ -173,11 +172,11 @@ public final class AddressLookupTableProgram {
 
   public static Instruction closeLookupTable(final SolanaAccounts solanaAccounts,
                                              final PublicKey tableAccount,
-                                             final AccountMeta authorityAccount,
+                                             final PublicKey authorityAccount,
                                              final PublicKey lamportRecipient) {
     final var keys = List.of(
         createWrite(tableAccount),
-        authorityAccount,
+        createReadOnlySigner(authorityAccount),
         createWrite(lamportRecipient)
     );
 

@@ -462,11 +462,11 @@ public final class TokenProgram {
                                      final PublicKey source,
                                      final PublicKey destination,
                                      final long amount,
-                                     final AccountMeta owner) {
+                                     final PublicKey owner) {
     final var keys = List.of(
         createWrite(source),
         createWrite(destination),
-        owner
+        createReadOnlySigner(owner)
     );
 
     final byte[] data = new byte[9];
@@ -481,14 +481,14 @@ public final class TokenProgram {
                                             final PublicKey destination,
                                             final long amount,
                                             final int decimals,
-                                            final AccountMeta owner,
+                                            final PublicKey owner,
                                             final PublicKey tokenMint) {
     // index 1 = token mint (https://docs.rs/spl-token/3.1.0/spl_token/instruction/enum.TokenInstruction.html#variant.TransferChecked)
     final var keys = List.of(
         createWrite(source),
         createRead(tokenMint),
         createWrite(destination),
-        owner
+        createReadOnlySigner(owner)
     );
 
     final byte[] data = new byte[10];
@@ -515,11 +515,11 @@ public final class TokenProgram {
   public static Instruction closeAccount(final AccountMeta invokedProgram,
                                          final PublicKey tokenAccount,
                                          final PublicKey lamportDestination,
-                                         final AccountMeta owner) {
+                                         final PublicKey owner) {
     final var keys = List.of(
         createWrite(tokenAccount),
         createWrite(lamportDestination),
-        owner
+        createReadOnlySigner(owner)
     );
     return createInstruction(invokedProgram, keys, TokenInstruction.CloseAccount.discriminatorBytes);
   }

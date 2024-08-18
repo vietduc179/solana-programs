@@ -4,43 +4,32 @@ import software.sava.core.accounts.PublicKey;
 import software.sava.core.accounts.SolanaAccounts;
 import software.sava.core.accounts.meta.AccountMeta;
 import software.sava.core.tx.Instruction;
-import software.sava.solana.programs.clients.NativeProgramAccountClient;
 import software.sava.rpc.json.http.response.AccountInfo;
+import software.sava.solana.programs.clients.NativeProgramAccountClient;
 
 final class StakePoolProgramClientImpl implements StakePoolProgramClient {
 
   private final NativeProgramAccountClient nativeProgramClient;
   private final SolanaAccounts accounts;
   private final StakePoolAccounts stakePoolAccounts;
-  private final AccountMeta owner;
+  private final PublicKey owner;
 
   StakePoolProgramClientImpl(final NativeProgramAccountClient nativeProgramClient,
-                             final StakePoolAccounts stakePoolAccounts,
-                             final AccountMeta owner) {
+                             final StakePoolAccounts stakePoolAccounts) {
     this.nativeProgramClient = nativeProgramClient;
-    this.accounts = nativeProgramClient.accounts();
+    this.accounts = nativeProgramClient.solanaAccounts();
     this.stakePoolAccounts = stakePoolAccounts;
-    this.owner = owner;
+    this.owner = nativeProgramClient.ownerPublicKey();
   }
 
   @Override
-  public NativeProgramAccountClient nativeProgramClient() {
+  public NativeProgramAccountClient nativeProgramAccountClient() {
     return nativeProgramClient;
-  }
-
-  @Override
-  public SolanaAccounts accounts() {
-    return accounts;
   }
 
   @Override
   public StakePoolAccounts stakePoolAccounts() {
     return stakePoolAccounts;
-  }
-
-  @Override
-  public AccountMeta owner() {
-    return owner;
   }
 
   @Override
@@ -146,6 +135,7 @@ final class StakePoolProgramClientImpl implements StakePoolProgramClient {
         owner,
         poolTokenATA,
         stakePoolState.reserveStake(),
+        owner,
         stakePoolState.managerFeeAccount(),
         stakePoolState.poolMint(),
         stakePoolState.tokenProgramId(),
@@ -166,6 +156,7 @@ final class StakePoolProgramClientImpl implements StakePoolProgramClient {
         owner,
         poolTokenATA,
         stakePoolState.reserveStake(),
+        owner,
         stakePoolState.managerFeeAccount(),
         stakePoolState.poolMint(),
         stakePoolState.tokenProgramId(),
@@ -211,7 +202,7 @@ final class StakePoolProgramClientImpl implements StakePoolProgramClient {
         stakePoolStateAccountInfo,
         validatorOrReserveStakeAccount,
         uninitializedStakeAccount,
-        owner.publicKey(),
+        owner,
         poolTokenATA,
         poolTokenAmount,
         lamportsOut
@@ -253,7 +244,7 @@ final class StakePoolProgramClientImpl implements StakePoolProgramClient {
         stakePoolStateAccountInfo,
         validatorOrReserveStakeAccount,
         uninitializedStakeAccount,
-        owner.publicKey(),
+        owner,
         poolTokenATA,
         poolTokenAmount
     );

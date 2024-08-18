@@ -1,12 +1,10 @@
-package software.sava.core;
+package software.sava.solana.programs.system;
 
 import org.junit.jupiter.api.Test;
-import software.sava.core.accounts.meta.AccountMeta;
 import software.sava.core.accounts.PublicKey;
 import software.sava.core.accounts.SolanaAccounts;
-import software.sava.core.tx.Transaction;
 import software.sava.core.encoding.Base58;
-import software.sava.solana.programs.system.SystemProgram;
+import software.sava.core.tx.Transaction;
 
 import java.util.Base64;
 
@@ -20,9 +18,9 @@ final class MessageTest {
     final var toPublicKey = PublicKey.fromBase58Encoded("GrDMoeqMLFjeXQ24H56S1RLgT4R76jsuWCd6SvXyGPQ5");
     final int lamports = 3_000;
 
-    final var transaction = Transaction.createTx(SystemProgram.transfer(
+    final var transaction = Transaction.createTx(fromPublicKey, SystemProgram.transfer(
         SolanaAccounts.MAIN_NET.invokedSystemProgram(),
-        AccountMeta.createFeePayer(fromPublicKey),
+        fromPublicKey,
         toPublicKey,
         lamports)
     );

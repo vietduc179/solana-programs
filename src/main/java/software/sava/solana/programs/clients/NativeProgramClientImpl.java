@@ -18,6 +18,8 @@ import software.sava.solana.programs.system.SystemProgram;
 import software.sava.solana.programs.token.TokenProgram;
 
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.OptionalLong;
 import java.util.concurrent.CompletableFuture;
@@ -30,8 +32,13 @@ import static software.sava.solana.programs.stake.StakeAccount.*;
 record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgramClient {
 
   @Override
-  public NativeProgramAccountClient createAccountClient(final AccountMeta owner) {
-    return new NativeProgramAccountClientImpl(this, owner);
+  public NativeProgramAccountClient createAccountClient(final AccountMeta ownerAndFeePayer) {
+    return new NativeProgramAccountClientImpl(this, ownerAndFeePayer.publicKey(), ownerAndFeePayer);
+  }
+
+  @Override
+  public NativeProgramAccountClient createAccountClient(final PublicKey owner, final AccountMeta feePayer) {
+    return new NativeProgramAccountClientImpl(this, owner, feePayer);
   }
 
   @Override
@@ -179,7 +186,7 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
 
   @Override
   public Instruction setStakeAccountLockup(final PublicKey initializedStakeAccount,
-                                           final AccountMeta lockupOrWithdrawAuthority,
+                                           final PublicKey lockupOrWithdrawAuthority,
                                            final Instant timestamp,
                                            final OptionalLong epoch,
                                            final PublicKey custodian) {
@@ -195,7 +202,7 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
 
   @Override
   public Instruction setStakeAccountLockupChecked(final PublicKey initializedStakeAccount,
-                                                  final AccountMeta lockupOrWithdrawAuthority,
+                                                  final PublicKey lockupOrWithdrawAuthority,
                                                   final Instant timestamp,
                                                   final OptionalLong epoch) {
     return setStakeAccountLockupChecked(initializedStakeAccount, lockupOrWithdrawAuthority, null, timestamp, epoch);
@@ -203,8 +210,8 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
 
   @Override
   public Instruction setStakeAccountLockupChecked(final PublicKey initializedStakeAccount,
-                                                  final AccountMeta lockupOrWithdrawAuthority,
-                                                  final AccountMeta newLockupAuthority,
+                                                  final PublicKey lockupOrWithdrawAuthority,
+                                                  final PublicKey newLockupAuthority,
                                                   final Instant timestamp,
                                                   final OptionalLong epoch) {
     return StakeProgram.setLockupChecked(
@@ -219,8 +226,8 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
 
   @Override
   public Instruction authorizeStakeAccount(final PublicKey stakeAccount,
-                                           final AccountMeta stakeOrWithdrawAuthority,
-                                           final AccountMeta lockupAuthority,
+                                           final PublicKey stakeOrWithdrawAuthority,
+                                           final PublicKey lockupAuthority,
                                            final PublicKey newAuthority,
                                            final StakeProgram.StakeAuthorize stakeAuthorize) {
     return StakeProgram.authorize(
@@ -235,7 +242,7 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
 
   @Override
   public Instruction authorizeStakeAccount(final PublicKey stakeAccount,
-                                           final AccountMeta stakeOrWithdrawAuthority,
+                                           final PublicKey stakeOrWithdrawAuthority,
                                            final PublicKey newAuthority,
                                            final StakeProgram.StakeAuthorize stakeAuthorize) {
     return authorizeStakeAccount(
@@ -249,9 +256,9 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
 
   @Override
   public Instruction authorizeStakeAccountChecked(final PublicKey stakeAccount,
-                                                  final AccountMeta stakeOrWithdrawAuthority,
-                                                  final AccountMeta newStakeOrWithdrawAuthority,
-                                                  final AccountMeta lockupAuthority,
+                                                  final PublicKey stakeOrWithdrawAuthority,
+                                                  final PublicKey newStakeOrWithdrawAuthority,
+                                                  final PublicKey lockupAuthority,
                                                   final StakeProgram.StakeAuthorize stakeAuthorize) {
     return StakeProgram.authorizeChecked(
         accounts,
@@ -265,8 +272,8 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
 
   @Override
   public Instruction authorizeStakeAccountChecked(final PublicKey stakeAccount,
-                                                  final AccountMeta stakeOrWithdrawAuthority,
-                                                  final AccountMeta newStakeOrWithdrawAuthority,
+                                                  final PublicKey stakeOrWithdrawAuthority,
+                                                  final PublicKey newStakeOrWithdrawAuthority,
                                                   final StakeProgram.StakeAuthorize stakeAuthorize) {
     return authorizeStakeAccountChecked(
         stakeAccount,
@@ -280,7 +287,7 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
   @Override
   public Instruction authorizeStakeAccountWithSeed(final PublicKey stakeAccount,
                                                    final AccountWithSeed baseKeyOrWithdrawAuthority,
-                                                   final AccountMeta lockupAuthority,
+                                                   final PublicKey lockupAuthority,
                                                    final PublicKey newAuthorizedPublicKey,
                                                    final StakeProgram.StakeAuthorize stakeAuthorize,
                                                    final PublicKey authorityOwner) {
@@ -314,8 +321,8 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
   @Override
   public Instruction authorizeStakeAccountCheckedWithSeed(final PublicKey stakeAccount,
                                                           final AccountWithSeed baseKeyOrWithdrawAuthority,
-                                                          final AccountMeta stakeOrWithdrawAuthority,
-                                                          final AccountMeta lockupAuthority,
+                                                          final PublicKey stakeOrWithdrawAuthority,
+                                                          final PublicKey lockupAuthority,
                                                           final StakeProgram.StakeAuthorize stakeAuthorize,
                                                           final PublicKey authorityOwner) {
     return StakeProgram.authorizeCheckedWithSeed(
@@ -353,7 +360,7 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
   @Override
   public Instruction initializeStakeAccountChecked(final PublicKey unInitializedStakeAccount,
                                                    final PublicKey staker,
-                                                   final AccountMeta withdrawer) {
+                                                   final PublicKey withdrawer) {
     return StakeProgram.initializeChecked(
         accounts,
         unInitializedStakeAccount,
@@ -362,59 +369,159 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
     );
   }
 
-  @Override
-  public Instruction splitStakeAccount(final PublicKey splitStakeAccount,
+  public Instruction delegateStakeAccount(final StakeAccount initializedStakeAccount,
+                                          final PublicKey validatorVoteAccount) {
+    return StakeProgram.delegateStake(
+        accounts,
+        initializedStakeAccount.address(),
+        validatorVoteAccount,
+        initializedStakeAccount.stakeAuthority()
+    );
+  }
+
+  public Instruction reDelegateStakeAccount(final StakeAccount delegatedStakeAccount,
+                                            final PublicKey uninitializedStakeAccount,
+                                            final PublicKey validatorVoteAccount) {
+    return StakeProgram.reDelegate(
+        accounts,
+        delegatedStakeAccount.address(),
+        uninitializedStakeAccount,
+        validatorVoteAccount,
+        delegatedStakeAccount.stakeAuthority()
+    );
+  }
+
+  public Instruction splitStakeAccount(final StakeAccount splitStakeAccount,
                                        final PublicKey unInitializedStakeAccount,
-                                       final AccountMeta stakeAuthority,
                                        final long lamports) {
     return StakeProgram.split(
         accounts,
-        splitStakeAccount,
+        splitStakeAccount.address(),
         unInitializedStakeAccount,
-        stakeAuthority,
+        splitStakeAccount.stakeAuthority(),
         lamports
     );
   }
 
-  @Override
-  public Instruction mergeStakeAccounts(final PublicKey destinationStakeAccount,
-                                        final PublicKey srcStakeAccount,
-                                        final AccountMeta stakeAuthority) {
+  public Instruction mergeStakeAccounts(final StakeAccount destinationStakeAccount,
+                                        final PublicKey srcStakeAccount) {
     return StakeProgram.merge(
         accounts,
-        destinationStakeAccount,
+        destinationStakeAccount.address(),
         srcStakeAccount,
-        stakeAuthority
+        destinationStakeAccount.stakeAuthority()
+    );
+  }
+
+  public List<Instruction> mergeStakeAccountKeysInto(final StakeAccount destinationStakeAccount, final Collection<PublicKey> stakeAccounts) {
+    return stakeAccounts.stream()
+        .map(stakeAccount -> mergeStakeAccounts(destinationStakeAccount, stakeAccount))
+        .toList();
+  }
+
+  public List<Instruction> mergeStakeAccountsInto(final StakeAccount destinationStakeAccount, final Collection<StakeAccount> stakeAccounts) {
+    return stakeAccounts.stream()
+        .map(StakeAccount::address)
+        .map(stakeAccount -> mergeStakeAccounts(destinationStakeAccount, stakeAccount))
+        .toList();
+  }
+
+  public List<Instruction> mergeStakeAccountInfosInto(final StakeAccount destinationStakeAccount, final Collection<AccountInfo<StakeAccount>> stakeAccounts) {
+    return stakeAccounts.stream()
+        .map(AccountInfo::data)
+        .map(StakeAccount::address)
+        .map(stakeAccount -> mergeStakeAccounts(destinationStakeAccount, stakeAccount))
+        .toList();
+  }
+
+  public List<Instruction> mergeStakeAccounts(final List<StakeAccount> stakeAccounts) {
+    if (stakeAccounts.size() < 2) {
+      return List.of();
+    } else {
+      final var mergeInto = stakeAccounts.getFirst();
+      return stakeAccounts.stream().skip(1)
+          .map(StakeAccount::address)
+          .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
+          .toList();
+    }
+  }
+
+  public List<Instruction> mergeStakeAccountInfos(final List<AccountInfo<StakeAccount>> stakeAccounts) {
+    if (stakeAccounts.size() < 2) {
+      return List.of();
+    } else {
+      final var mergeInto = stakeAccounts.getFirst().data();
+      return stakeAccounts.stream().skip(1)
+          .map(AccountInfo::data)
+          .map(StakeAccount::address)
+          .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
+          .toList();
+    }
+  }
+
+  public List<Instruction> mergeStakeAccounts(final Collection<StakeAccount> stakeAccounts) {
+    if (stakeAccounts.size() < 2) {
+      return List.of();
+    } else {
+      final var array = stakeAccounts.toArray(StakeAccount[]::new);
+      final var mergeInto = array[0];
+      return Arrays.stream(array, 1, array.length)
+          .map(StakeAccount::address)
+          .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
+          .toList();
+    }
+  }
+
+  public List<Instruction> mergeStakeAccountInfos(final Collection<AccountInfo<StakeAccount>> stakeAccounts) {
+    @SuppressWarnings("unchecked") final AccountInfo<StakeAccount>[] array = stakeAccounts.toArray(AccountInfo[]::new);
+    final var mergeInto = (StakeAccount) array[0].data();
+    return Arrays.stream(array, 1, array.length)
+        .map(AccountInfo::data)
+        .map(StakeAccount::address)
+        .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
+        .toList();
+  }
+
+  public Instruction withdrawStakeAccount(final StakeAccount stakeAccount,
+                                          final PublicKey recipient,
+                                          final long lamports) {
+    final var lockup = stakeAccount.lockup();
+    if (lockup == null || lockup.equals(LockUp.NO_LOCKUP)) {
+      return StakeProgram.withdraw(
+          accounts,
+          stakeAccount.address(),
+          recipient,
+          stakeAccount.withdrawAuthority(),
+          lamports
+      );
+    } else {
+      return StakeProgram.withdraw(
+          accounts,
+          stakeAccount.address(),
+          recipient,
+          stakeAccount.withdrawAuthority(),
+          lockup.custodian(),
+          lamports
+      );
+    }
+  }
+
+  @Override
+  public Instruction deactivateStakeAccount(final StakeAccount delegatedStakeAccount) {
+    return StakeProgram.deactivate(
+        accounts,
+        delegatedStakeAccount.address(),
+        delegatedStakeAccount.stakeAuthority()
     );
   }
 
   @Override
-  public Instruction withdrawStakeAccount(final PublicKey stakeAccount,
-                                          final PublicKey recipient,
-                                          final AccountMeta withdrawAuthority,
-                                          final long lamports) {
-    return StakeProgram.withdraw(
-        accounts,
-        stakeAccount,
-        recipient,
-        withdrawAuthority,
-        lamports
-    );
+  public List<Instruction> deactivateStakeAccountInfos(final Collection<AccountInfo<StakeAccount>> delegatedStakeAccounts) {
+    return delegatedStakeAccounts.stream().map(AccountInfo::data).map(this::deactivateStakeAccount).toList();
   }
 
   @Override
-  public Instruction withdrawStakeAccount(final PublicKey stakeAccount,
-                                          final PublicKey recipient,
-                                          final AccountMeta withdrawAuthority,
-                                          final AccountMeta lockupAuthority,
-                                          final long lamports) {
-    return StakeProgram.withdraw(
-        accounts,
-        stakeAccount,
-        recipient,
-        withdrawAuthority,
-        lockupAuthority,
-        lamports
-    );
+  public List<Instruction> deactivateStakeAccounts(final Collection<StakeAccount> delegatedStakeAccounts) {
+    return delegatedStakeAccounts.stream().map(this::deactivateStakeAccount).toList();
   }
 }

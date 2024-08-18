@@ -2,8 +2,6 @@ package software.sava.solana.programs.stakepool;
 
 import software.sava.core.accounts.ProgramDerivedAddress;
 import software.sava.core.accounts.PublicKey;
-import software.sava.core.accounts.SolanaAccounts;
-import software.sava.core.accounts.meta.AccountMeta;
 import software.sava.core.tx.Instruction;
 import software.sava.rpc.json.http.client.SolanaRpcClient;
 import software.sava.rpc.json.http.response.AccountInfo;
@@ -14,29 +12,17 @@ import java.util.concurrent.CompletableFuture;
 public interface StakePoolProgramClient {
 
   static StakePoolProgramClient createClient(final NativeProgramAccountClient nativeProgramClient,
-                                             final StakePoolAccounts stakePoolAccounts,
-                                             final AccountMeta owner) {
-    return new StakePoolProgramClientImpl(nativeProgramClient, stakePoolAccounts, owner);
-  }
-
-  static StakePoolProgramClient createClient(final NativeProgramAccountClient nativeProgramClient,
-                                             final StakePoolAccounts stakePoolAccounts,
-                                             final PublicKey owner) {
-    return createClient(nativeProgramClient, stakePoolAccounts, AccountMeta.createWritableSigner(owner));
-  }
-
-  static StakePoolProgramClient createClient(final NativeProgramAccountClient nativeProgramClient,
                                              final StakePoolAccounts stakePoolAccounts) {
-    return createClient(nativeProgramClient, stakePoolAccounts, nativeProgramClient.owner());
+    return new StakePoolProgramClientImpl(nativeProgramClient, stakePoolAccounts);
   }
 
-  NativeProgramAccountClient nativeProgramClient();
+  static StakePoolProgramClient createClient(final NativeProgramAccountClient nativeProgramClient) {
+    return createClient(nativeProgramClient, StakePoolAccounts.MAIN_NET);
+  }
 
-  SolanaAccounts accounts();
+  NativeProgramAccountClient nativeProgramAccountClient();
 
   StakePoolAccounts stakePoolAccounts();
-
-  AccountMeta owner();
 
   static CompletableFuture<AccountInfo<StakePoolState>> fetchProgramState(final SolanaRpcClient rpcClient,
                                                                           final PublicKey stakePoolPublicKey) {

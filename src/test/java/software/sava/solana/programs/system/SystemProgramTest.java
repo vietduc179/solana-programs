@@ -1,11 +1,9 @@
-package software.sava.core;
+package software.sava.solana.programs.system;
 
 import org.junit.jupiter.api.Test;
-import software.sava.core.accounts.meta.AccountMeta;
 import software.sava.core.accounts.PublicKey;
 import software.sava.core.accounts.SolanaAccounts;
 import software.sava.core.encoding.Base58;
-import software.sava.solana.programs.system.SystemProgram;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -21,14 +19,15 @@ final class SystemProgramTest {
 
     final var instruction = SystemProgram.transfer(
         SolanaAccounts.MAIN_NET.invokedSystemProgram(),
-        AccountMeta.createFeePayer(fromPublicKey),
+        fromPublicKey,
         toPublicKey,
         lamports
     );
 
     assertEquals(MAIN_NET.invokedSystemProgram(), instruction.programId());
     assertEquals(2, instruction.accounts().size());
-    assertEquals(toPublicKey, instruction.accounts().get(1).publicKey());
+    assertEquals(fromPublicKey, instruction.accounts().getFirst().publicKey());
+    assertEquals(toPublicKey, instruction.accounts().getLast().publicKey());
 
     assertArrayEquals(new byte[]{2, 0, 0, 0, -72, 11, 0, 0, 0, 0, 0, 0}, instruction.data());
   }
@@ -37,7 +36,7 @@ final class SystemProgramTest {
   public void createAccountInstruction() {
     final var instruction = SystemProgram.createAccount(
         MAIN_NET.invokedSystemProgram(),
-        AccountMeta.createFeePayer(MAIN_NET.systemProgram()),
+        MAIN_NET.systemProgram(),
         MAIN_NET.systemProgram(), 2039280, 165,
         MAIN_NET.systemProgram()
     );

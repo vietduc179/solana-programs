@@ -8,8 +8,7 @@ import software.sava.core.tx.Instruction;
 import java.util.List;
 
 import static software.sava.core.accounts.PublicKey.PUBLIC_KEY_LENGTH;
-import static software.sava.core.accounts.meta.AccountMeta.createWritableSigner;
-import static software.sava.core.accounts.meta.AccountMeta.createWrite;
+import static software.sava.core.accounts.meta.AccountMeta.*;
 import static software.sava.core.encoding.ByteUtil.putInt64LE;
 import static software.sava.core.programs.Discriminator.NATIVE_DISCRIMINATOR_LENGTH;
 import static software.sava.core.programs.Discriminator.serializeDiscriminator;
@@ -216,16 +215,19 @@ public final class SystemProgram {
 
   public static Instruction allocateWithSeed(final AccountMeta invokedProgram,
                                              final AccountWithSeed accountWithSeed,
-                                             final AccountMeta baseAccount,
                                              final long space,
                                              final PublicKey programOwner) {
-    final var keys = List.of(createWrite(accountWithSeed.publicKey()), baseAccount);
+    final var baseAccount = accountWithSeed.baseKey();
+    final var keys = List.of(
+        createWrite(accountWithSeed.publicKey()),
+        createReadOnlySigner(baseAccount)
+    );
 
     final byte[] seedBytes = accountWithSeed.asciiSeed();
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + PUBLIC_KEY_LENGTH + (Long.BYTES + seedBytes.length) + Long.BYTES + PUBLIC_KEY_LENGTH];
     serializeDiscriminator(data, SystemInstruction.AllocateWithSeed);
     int i = Integer.BYTES;
-    i += baseAccount.publicKey().write(data, i);
+    i += baseAccount.write(data, i);
     i = writeBytes(seedBytes, data, i);
     putInt64LE(data, i, space);
     i += Long.BYTES;
@@ -235,9 +237,9 @@ public final class SystemProgram {
   }
 
   public static Instruction assign(final AccountMeta invokedProgram,
-                                   final AccountMeta newAccount,
+                                   final PublicKey newAccount,
                                    final PublicKey programOwner) {
-    final var keys = List.of(newAccount);
+    final var keys = List.of(createWritableSigner(newAccount));
 
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + PUBLIC_KEY_LENGTH];
     serializeDiscriminator(data, SystemInstruction.Assign);
@@ -248,15 +250,15 @@ public final class SystemProgram {
 
   public static Instruction assignWithSeed(final AccountMeta invokedProgram,
                                            final AccountWithSeed accountWithSeed,
-                                           final AccountMeta baseAccount,
+                                           final PublicKey baseAccount,
                                            final PublicKey programOwner) {
-    final var keys = List.of(createWrite(accountWithSeed.publicKey()), baseAccount);
+    final var keys = List.of(createWrite(accountWithSeed.publicKey()), createReadOnlySigner(baseAccount));
 
     final byte[] seedBytes = accountWithSeed.asciiSeed();
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + PUBLIC_KEY_LENGTH + (Long.BYTES + seedBytes.length) + PUBLIC_KEY_LENGTH];
     serializeDiscriminator(data, SystemInstruction.AssignWithSeed);
     int i = Integer.BYTES;
-    i += baseAccount.publicKey().write(data, i);
+    i += baseAccount.write(data, i);
     i = writeBytes(seedBytes, data, i);
     programOwner.write(data, i);
 
@@ -264,12 +266,12 @@ public final class SystemProgram {
   }
 
   public static Instruction createAccount(final AccountMeta invokedProgram,
-                                          final AccountMeta fromPublicKey,
+                                          final PublicKey fromPublicKey,
                                           final PublicKey newAccountPublicKey,
                                           final long lamports,
                                           final long space,
                                           final PublicKey programOwner) {
-    final var keys = List.of(fromPublicKey, createWritableSigner(newAccountPublicKey));
+    final var keys = List.of(createWritableSigner(fromPublicKey), createWritableSigner(newAccountPublicKey));
 
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + Long.BYTES + Long.BYTES + PUBLIC_KEY_LENGTH];
     serializeDiscriminator(data, SystemInstruction.CreateAccount);
@@ -281,18 +283,23 @@ public final class SystemProgram {
   }
 
   public static Instruction createAccountWithSeed(final AccountMeta invokedProgram,
-                                                  final AccountMeta fromPublicKey,
+                                                  final PublicKey fromPublicKey,
                                                   final AccountWithSeed accountWithSeed,
                                                   final long lamports,
                                                   final long space,
                                                   final PublicKey programOwner) {
+    final var fromSigner = createWritableSigner(fromPublicKey);
+    final var accountMeta = createWrite(accountWithSeed.publicKey());
+    final var baseAccount = accountWithSeed.baseKey();
     final byte[] seedBytes = accountWithSeed.asciiSeed();
-    final var keys = List.of(fromPublicKey, createWrite(accountWithSeed.publicKey()));
+    final var keys = baseAccount.equals(fromPublicKey)
+        ? List.of(fromSigner, accountMeta)
+        : List.of(fromSigner, accountMeta, createReadOnlySigner(baseAccount));
 
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + PUBLIC_KEY_LENGTH + (Long.BYTES + seedBytes.length) + Long.BYTES + Long.BYTES + PUBLIC_KEY_LENGTH];
     serializeDiscriminator(data, SystemInstruction.CreateAccountWithSeed);
 
-    fromPublicKey.publicKey().write(data, Integer.BYTES);
+    baseAccount.write(data, Integer.BYTES);
     int i = writeBytes(seedBytes, data, Integer.BYTES + PUBLIC_KEY_LENGTH);
     putInt64LE(data, i, lamports);
     i += Long.BYTES;
@@ -304,11 +311,11 @@ public final class SystemProgram {
   }
 
   public static Instruction transfer(final AccountMeta invokedProgram,
-                                     final AccountMeta fromPublicKey,
+                                     final PublicKey fromPublicKey,
                                      final PublicKey toPublicKey,
                                      final long lamports) {
     final var keys = List.of(
-        fromPublicKey,
+        createWritableSigner(fromPublicKey),
         createWrite(toPublicKey)
     );
 
@@ -321,13 +328,12 @@ public final class SystemProgram {
 
   public static Instruction transferWithSeed(final AccountMeta invokedProgram,
                                              final AccountWithSeed accountWithSeed,
-                                             final AccountMeta baseAccount,
                                              final PublicKey recipientAccount,
                                              final long lamports,
                                              final PublicKey programOwner) {
     final var keys = List.of(
         createWrite(accountWithSeed.publicKey()),
-        baseAccount,
+        createReadOnlySigner(accountWithSeed.baseKey()),
         createWrite(recipientAccount)
     );
 

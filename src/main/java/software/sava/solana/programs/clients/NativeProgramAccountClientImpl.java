@@ -14,13 +14,11 @@ import software.sava.rpc.json.http.client.SolanaRpcClient;
 import software.sava.rpc.json.http.response.AccountInfo;
 import software.sava.solana.programs.address_lookup_table.AddressLookupTableProgram;
 import software.sava.solana.programs.stake.StakeAccount;
-import software.sava.solana.programs.stake.StakeProgram;
 import software.sava.solana.programs.stake.StakeState;
 import software.sava.solana.programs.system.SystemProgram;
 import software.sava.solana.programs.token.AssociatedTokenProgram;
 import software.sava.solana.programs.token.TokenProgram;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -31,30 +29,42 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   private final SolanaAccounts accounts;
   private final NativeProgramClient nativeProgramClient;
-  private final AccountMeta owner;
+  private final PublicKey owner;
+  private final AccountMeta feePayer;
   private final ProgramDerivedAddress wrappedSolPDA;
 
-  NativeProgramAccountClientImpl(final SolanaAccounts accounts, final AccountMeta owner) {
+  NativeProgramAccountClientImpl(final SolanaAccounts accounts,
+                                 final PublicKey owner,
+                                 final AccountMeta feePayer) {
     this.accounts = accounts;
     this.nativeProgramClient = NativeProgramClient.createClient(accounts);
     this.owner = owner;
     this.wrappedSolPDA = findAssociatedTokenProgramAddress(accounts.wrappedSolTokenMint());
+    this.feePayer = feePayer;
   }
 
-  NativeProgramAccountClientImpl(final NativeProgramClient nativeProgramClient, final AccountMeta owner) {
+  NativeProgramAccountClientImpl(final NativeProgramClient nativeProgramClient,
+                                 final PublicKey owner,
+                                 final AccountMeta feePayer) {
     this.accounts = nativeProgramClient.accounts();
     this.nativeProgramClient = nativeProgramClient;
     this.owner = owner;
+    this.feePayer = feePayer;
     this.wrappedSolPDA = findAssociatedTokenProgramAddress(accounts.wrappedSolTokenMint());
   }
 
   @Override
-  public AccountMeta owner() {
+  public PublicKey ownerPublicKey() {
     return owner;
   }
 
   @Override
-  public SolanaAccounts accounts() {
+  public AccountMeta feePayer() {
+    return feePayer;
+  }
+
+  @Override
+  public SolanaAccounts solanaAccounts() {
     return accounts;
   }
 
@@ -114,26 +124,26 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public Transaction createTransaction(final Instruction instruction) {
-    return createTransaction(owner, instruction);
+    return createTransaction(feePayer, instruction);
   }
 
   @Override
   public Transaction createTransaction(final List<Instruction> instructions) {
-    return createTransaction(owner, instructions);
+    return createTransaction(feePayer, instructions);
   }
 
   @Override
   public Transaction createTransaction(final int computeUnitLimit,
                                        final long microLamportComputeUnitPrice,
                                        final Instruction instruction) {
-    return createTransaction(owner, computeUnitLimit, microLamportComputeUnitPrice, instruction);
+    return createTransaction(feePayer, computeUnitLimit, microLamportComputeUnitPrice, instruction);
   }
 
   @Override
   public Transaction createTransaction(final int computeUnitLimit,
                                        final long microLamportComputeUnitPrice,
                                        final List<Instruction> instructions) {
-    return createTransaction(computeUnitLimit, microLamportComputeUnitPrice, Transaction.createTx(owner, instructions));
+    return createTransaction(computeUnitLimit, microLamportComputeUnitPrice, Transaction.createTx(feePayer, instructions));
   }
 
   @Override
@@ -206,12 +216,12 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public Transaction createTransaction(final Instruction instruction, final AddressLookupTable lookupTable) {
-    return createTransaction(owner, instruction, lookupTable);
+    return createTransaction(feePayer, instruction, lookupTable);
   }
 
   @Override
   public Transaction createTransaction(final List<Instruction> instructions, final AddressLookupTable lookupTable) {
-    return createTransaction(owner, instructions, lookupTable);
+    return createTransaction(feePayer, instructions, lookupTable);
   }
 
   @Override
@@ -219,7 +229,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
                                        final long microLamportComputeUnitPrice,
                                        final Instruction instruction,
                                        final AddressLookupTable lookupTable) {
-    return createTransaction(owner, computeUnitLimit, microLamportComputeUnitPrice, instruction, lookupTable);
+    return createTransaction(feePayer, computeUnitLimit, microLamportComputeUnitPrice, instruction, lookupTable);
   }
 
 
@@ -228,7 +238,11 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
                                        final long microLamportComputeUnitPrice,
                                        final List<Instruction> instructions,
                                        final AddressLookupTable lookupTable) {
-    return createTransaction(computeUnitLimit, microLamportComputeUnitPrice, Transaction.createTx(owner, instructions, lookupTable));
+    return createTransaction(
+        computeUnitLimit,
+        microLamportComputeUnitPrice,
+        Transaction.createTx(feePayer, instructions, lookupTable)
+    );
   }
 
   @Override
@@ -291,12 +305,12 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public Transaction createTransaction(final Instruction instruction, final LookupTableAccountMeta[] tableAccountMetas) {
-    return createTransaction(owner, instruction, tableAccountMetas);
+    return createTransaction(feePayer, instruction, tableAccountMetas);
   }
 
   @Override
   public Transaction createTransaction(final List<Instruction> instructions, final LookupTableAccountMeta[] tableAccountMetas) {
-    return createTransaction(owner, instructions, tableAccountMetas);
+    return createTransaction(feePayer, instructions, tableAccountMetas);
   }
 
   @Override
@@ -304,7 +318,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
                                        final long microLamportComputeUnitPrice,
                                        final Instruction instruction,
                                        final LookupTableAccountMeta[] tableAccountMetas) {
-    return createTransaction(owner, computeUnitLimit, microLamportComputeUnitPrice, instruction, tableAccountMetas);
+    return createTransaction(feePayer, computeUnitLimit, microLamportComputeUnitPrice, instruction, tableAccountMetas);
   }
 
   @Override
@@ -312,27 +326,31 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
                                        final long microLamportComputeUnitPrice,
                                        final List<Instruction> instructions,
                                        final LookupTableAccountMeta[] tableAccountMetas) {
-    return createTransaction(computeUnitLimit, microLamportComputeUnitPrice, Transaction.createTx(owner, instructions, tableAccountMetas));
+    return createTransaction(
+        computeUnitLimit,
+        microLamportComputeUnitPrice,
+        Transaction.createTx(feePayer, instructions, tableAccountMetas)
+    );
   }
 
   @Override
   public ProgramDerivedAddress findAssociatedTokenProgramAddress(final PublicKey mint) {
-    return AssociatedTokenProgram.findAssociatedTokenProgramAddress(accounts, owner.publicKey(), mint);
+    return AssociatedTokenProgram.findAssociatedTokenProgramAddress(accounts, owner, mint);
   }
 
   @Override
   public CompletableFuture<List<AccountInfo<TokenAccount>>> fetchTokenAccounts(final SolanaRpcClient rpcClient, final PublicKey tokenMintAddress) {
-    return rpcClient.getTokenAccountsForTokenMintByOwner(owner.publicKey(), tokenMintAddress);
+    return rpcClient.getTokenAccountsForTokenMintByOwner(owner, tokenMintAddress);
   }
 
   @Override
   public CompletableFuture<List<AccountInfo<TokenAccount>>> fetchTokenAccounts(final SolanaRpcClient rpcClient) {
-    return rpcClient.getTokenAccountsForProgramByOwner(owner.publicKey(), accounts.tokenProgram());
+    return rpcClient.getTokenAccountsForProgramByOwner(owner, accounts.tokenProgram());
   }
 
   @Override
   public CompletableFuture<List<AccountInfo<TokenAccount>>> fetchToken2022Accounts(final SolanaRpcClient rpcClient) {
-    return rpcClient.getTokenAccountsForProgramByOwner(owner.publicKey(), accounts.token2022Program());
+    return rpcClient.getTokenAccountsForProgramByOwner(owner, accounts.token2022Program());
   }
 
   @Override
@@ -390,27 +408,31 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
     return SystemProgram.allocateWithSeed(
         accounts.invokedSystemProgram(),
         accountWithSeed,
-        owner,
         space,
         programOwner
     );
   }
 
   @Override
-  public AccountWithSeed createOffCurveAccountWithSeed(final String asciiSeed) {
-    return PublicKey.createOffCurveAccountWithAsciiSeed(owner.publicKey(), asciiSeed, accounts.stakeProgram());
+  public AccountWithSeed createOffCurveAccountWithSeed(final String asciiSeed, final PublicKey programId) {
+    return PublicKey.createOffCurveAccountWithAsciiSeed(owner, asciiSeed, programId);
+  }
+
+  @Override
+  public AccountWithSeed createOffCurveStakeAccountWithSeed(final String asciiSeed) {
+    return createOffCurveAccountWithSeed(asciiSeed, accounts.stakeProgram());
   }
 
   @Override
   public CompletableFuture<List<AccountInfo<StakeAccount>>> fetchStakeAccountsByStakeAuthority(final SolanaRpcClient rpcClient,
                                                                                                final StakeState stakeState) {
-    return nativeProgramClient.fetchStakeAccountsByStakeAuthority(rpcClient, stakeState, this.owner.publicKey());
+    return nativeProgramClient.fetchStakeAccountsByStakeAuthority(rpcClient, stakeState, ownerPublicKey());
   }
 
   @Override
   public CompletableFuture<List<AccountInfo<StakeAccount>>> fetchStakeAccountsByWithdrawAuthority(final SolanaRpcClient rpcClient,
                                                                                                   final StakeState stakeState) {
-    return nativeProgramClient.fetchStakeAccountsByWithdrawAuthority(rpcClient, stakeState, this.owner.publicKey());
+    return nativeProgramClient.fetchStakeAccountsByWithdrawAuthority(rpcClient, stakeState, ownerPublicKey());
   }
 
   @Override
@@ -448,13 +470,13 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public Instruction transferSolLamportsWithSeed(final AccountWithSeed accountWithSeed,
+                                                 final PublicKey recipientAccount,
                                                  final long lamports,
                                                  final PublicKey programOwner) {
     return SystemProgram.transferWithSeed(
         accounts.invokedSystemProgram(),
         accountWithSeed,
-        this.owner,
-        this.owner.publicKey(),
+        recipientAccount,
         lamports,
         programOwner
     );
@@ -462,7 +484,12 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public Instruction transferSolLamports(final PublicKey toPublicKey, final long lamports) {
-    return SystemProgram.transfer(accounts.invokedSystemProgram(), owner, toPublicKey, lamports);
+    return SystemProgram.transfer(
+        accounts.invokedSystemProgram(),
+        owner,
+        toPublicKey,
+        lamports
+    );
   }
 
   @Override
@@ -500,7 +527,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
     return TokenProgram.closeAccount(
         accounts.invokedTokenProgram(),
         tokenAccount,
-        owner.publicKey(),
+        owner,
         owner
     );
   }
@@ -533,18 +560,18 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public Instruction createATA(final boolean idempotent, final PublicKey programDerivedAddress, final PublicKey mint) {
-    return createATAFor(idempotent, owner.publicKey(), programDerivedAddress, mint);
+    return createATAFor(idempotent, owner, programDerivedAddress, mint);
   }
 
   @Override
   public Instruction createATA(final boolean idempotent, final PublicKey mint) {
-    return createATAFor(idempotent, owner.publicKey(), mint);
+    return createATAFor(idempotent, owner, mint);
   }
 
   @Override
-  public Instruction initializeStakeAccountWithStaker(final PublicKey unInitializedStakeAccount,
-                                                      final PublicKey staker) {
-    return nativeProgramClient.initializeStakeAccountChecked(
+  public Instruction initializeStakeAccount(final PublicKey unInitializedStakeAccount,
+                                            final PublicKey staker) {
+    return nativeProgramClient.initializeStakeAccount(
         unInitializedStakeAccount,
         staker,
         owner
@@ -552,22 +579,8 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   }
 
   @Override
-  public Instruction initializeStakeAccountWithWithdrawer(final PublicKey unInitializedStakeAccount,
-                                                          final PublicKey withdrawer) {
-    return nativeProgramClient.initializeStakeAccount(
-        unInitializedStakeAccount,
-        owner.publicKey(),
-        withdrawer
-    );
-  }
-
-  @Override
   public Instruction initializeStakeAccount(final PublicKey unInitializedStakeAccount) {
-    return nativeProgramClient.initializeStakeAccount(
-        unInitializedStakeAccount,
-        owner.publicKey(),
-        owner.publicKey()
-    );
+    return initializeStakeAccount(unInitializedStakeAccount, owner);
   }
 
   @Override
@@ -581,210 +594,21 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   }
 
   @Override
-  public Instruction initializeStakeAccountChecked(final PublicKey unInitializedStakeAccount,
-                                                   final AccountMeta withdrawer) {
-    return nativeProgramClient.initializeStakeAccountChecked(
-        unInitializedStakeAccount,
-        owner.publicKey(),
-        withdrawer
-    );
-  }
-
-  @Override
   public Instruction initializeStakeAccountChecked(final PublicKey unInitializedStakeAccount) {
     return nativeProgramClient.initializeStakeAccountChecked(
         unInitializedStakeAccount,
-        owner.publicKey(),
-        owner
-    );
-  }
-
-  @Override
-  public Instruction authorizeStakeAccount(final PublicKey stakeAccount,
-                                           final PublicKey newAuthority,
-                                           final StakeProgram.StakeAuthorize stakeAuthorize) {
-    return nativeProgramClient.authorizeStakeAccount(
-        stakeAccount,
         owner,
-        newAuthority,
-        stakeAuthorize
-    );
-  }
-
-  @Override
-  public Instruction delegateStakeAccount(final PublicKey initializedStakeAccount,
-                                          final PublicKey validatorVoteAccount) {
-    return StakeProgram.delegateStake(
-        accounts,
-        initializedStakeAccount,
-        validatorVoteAccount,
         owner
     );
   }
 
   @Override
-  public Instruction reDelegateStakeAccount(final PublicKey delegatedStakeAccount,
-                                            final PublicKey uninitializedStakeAccount,
-                                            final PublicKey validatorVoteAccount) {
-    return StakeProgram.reDelegate(
-        accounts,
-        delegatedStakeAccount,
-        uninitializedStakeAccount,
-        validatorVoteAccount,
-        owner
-    );
-  }
-
-  @Override
-  public Instruction deactivateStakeAccount(final PublicKey delegatedStakeAccount) {
-    return StakeProgram.deactivate(accounts, delegatedStakeAccount, owner);
-  }
-
-  @Override
-  public List<Instruction> deactivateStakeAccountInfos(final Collection<AccountInfo<StakeAccount>> delegatedStakeAccounts) {
-    return delegatedStakeAccounts.stream().map(this::deactivateStakeAccount).toList();
-  }
-
-  @Override
-  public List<Instruction> deactivateStakeAccounts(final Collection<StakeAccount> delegatedStakeAccounts) {
-    return delegatedStakeAccounts.stream().map(this::deactivateStakeAccount).toList();
-  }
-
-  @Override
-  public List<Instruction> deactivateStakeAccountKeys(final Collection<PublicKey> delegatedStakeAccounts) {
-    return delegatedStakeAccounts.stream().map(this::deactivateStakeAccount).toList();
-  }
-
-  @Override
-  public Instruction splitStakeAccount(final PublicKey splitStakeAccount,
-                                       final PublicKey unInitializedStakeAccount,
-                                       final long lamports) {
-    return nativeProgramClient.splitStakeAccount(
-        splitStakeAccount,
-        unInitializedStakeAccount,
-        owner,
-        lamports
-    );
-  }
-
-  @Override
-  public Instruction mergeStakeAccounts(final PublicKey destinationStakeAccount,
-                                        final PublicKey srcStakeAccount) {
-    return nativeProgramClient.mergeStakeAccounts(
-        destinationStakeAccount,
-        srcStakeAccount,
-        owner
-    );
-  }
-
-  @Override
-  public List<Instruction> mergeStakeAccountInto(final PublicKey destinationStakeAccount, final Collection<PublicKey> stakeAccounts) {
-    return stakeAccounts.stream()
-        .map(stakeAccount -> mergeStakeAccounts(destinationStakeAccount, stakeAccount))
-        .toList();
-  }
-
-  @Override
-  public List<Instruction> mergeStakeAccountsInto(final StakeAccount destinationStakeAccount, final Collection<StakeAccount> stakeAccounts) {
-    return stakeAccounts.stream()
-        .map(stakeAccount -> mergeStakeAccounts(destinationStakeAccount, stakeAccount))
-        .toList();
-  }
-
-  @Override
-  public List<Instruction> mergeStakeAccountsInto(final AccountInfo<StakeAccount> destinationStakeAccount, final Collection<AccountInfo<StakeAccount>> stakeAccounts) {
-    return stakeAccounts.stream()
-        .map(stakeAccount -> mergeStakeAccounts(destinationStakeAccount, stakeAccount))
-        .toList();
-  }
-
-  @Override
-  public List<Instruction> mergeStakeAccountKeys(final List<PublicKey> stakeAccounts) {
-    if (stakeAccounts.size() < 2) {
-      return List.of();
-    } else {
-      final var mergeInto = stakeAccounts.getFirst();
-      return stakeAccounts.stream().skip(1)
-          .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
-          .toList();
-    }
-  }
-
-  @Override
-  public List<Instruction> mergeStakeAccounts(final List<StakeAccount> stakeAccounts) {
-    if (stakeAccounts.size() < 2) {
-      return List.of();
-    } else {
-      final var mergeInto = stakeAccounts.getFirst();
-      return stakeAccounts.stream().skip(1)
-          .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
-          .toList();
-    }
-  }
-
-  @Override
-  public List<Instruction> mergeStakeAccountInfos(final List<AccountInfo<StakeAccount>> stakeAccounts) {
-    if (stakeAccounts.size() < 2) {
-      return List.of();
-    } else {
-      final var mergeInto = stakeAccounts.getFirst();
-      return stakeAccounts.stream().skip(1)
-          .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
-          .toList();
-    }
-  }
-
-  @Override
-  public List<Instruction> mergeStakeAccountKeys(final Collection<PublicKey> stakeAccounts) {
-    if (stakeAccounts.size() < 2) {
-      return List.of();
-    } else {
-      final var array = stakeAccounts.toArray(PublicKey[]::new);
-      final var mergeInto = array[0];
-      return Arrays.stream(array, 1, array.length)
-          .map(accountInfo -> mergeStakeAccounts(mergeInto, accountInfo))
-          .toList();
-    }
-  }
-
-  @Override
-  public List<Instruction> mergeStakeAccounts(final Collection<StakeAccount> stakeAccounts) {
-    if (stakeAccounts.size() < 2) {
-      return List.of();
-    } else {
-      final var array = stakeAccounts.toArray(StakeAccount[]::new);
-      final var mergeInto = array[0];
-      return Arrays.stream(array, 1, array.length)
-          .map(accountInfo -> mergeStakeAccounts(mergeInto, accountInfo))
-          .toList();
-    }
-  }
-
-  @Override
-  public List<Instruction> mergeStakeAccountInfos(final Collection<AccountInfo<StakeAccount>> stakeAccounts) {
-    final var array = stakeAccounts.toArray(AccountInfo[]::new);
-    final var mergeInto = array[0];
-    return Arrays.stream(array, 1, array.length)
-        .map(accountInfo -> mergeStakeAccounts(mergeInto.pubKey(), accountInfo.pubKey()))
-        .toList();
-  }
-
-  @Override
-  public Instruction withdrawStakeAccount(final PublicKey stakeAccount,
-                                          final AccountMeta lockupAuthority,
-                                          final long lamports) {
+  public Instruction withdrawStakeAccount(final StakeAccount stakeAccount, final long lamports) {
     return nativeProgramClient.withdrawStakeAccount(
         stakeAccount,
-        owner.publicKey(),
         owner,
-        lockupAuthority,
         lamports
     );
-  }
-
-  @Override
-  public Instruction withdrawStakeAccount(final PublicKey stakeAccount, final long lamports) {
-    return withdrawStakeAccount(stakeAccount, null, lamports);
   }
 
   @Override
@@ -794,7 +618,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public ProgramDerivedAddress findLookupTableAddress(final long recentSlot) {
-    return AddressLookupTableProgram.findLookupTableAddress(accounts, owner.publicKey(), recentSlot);
+    return AddressLookupTableProgram.findLookupTableAddress(accounts, owner, recentSlot);
   }
 
   @Override
@@ -844,7 +668,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
         accounts,
         tableAccount,
         owner,
-        owner.publicKey()
+        owner
     );
   }
 }
