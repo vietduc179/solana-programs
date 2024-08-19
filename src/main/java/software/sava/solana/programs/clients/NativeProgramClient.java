@@ -15,6 +15,7 @@ import software.sava.solana.programs.stake.StakeProgram;
 import software.sava.solana.programs.stake.StakeState;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.OptionalLong;
@@ -46,7 +47,9 @@ public interface NativeProgramClient {
 
   Instruction syncNative(final PublicKey tokenAccount);
 
-  Instruction allocateStakeAccount(final PublicKey newAccountPublicKey);
+  default Instruction allocateStakeAccount(final PublicKey newAccountPublicKey) {
+    return allocateAccountSpace(newAccountPublicKey, StakeAccount.BYTES);
+  }
 
   CompletableFuture<List<AccountInfo<StakeAccount>>> fetchStakeAccountsByStakeAuthority(final SolanaRpcClient rpcClient,
                                                                                         final StakeState stakeState,
@@ -128,10 +131,12 @@ public interface NativeProgramClient {
                                     final OptionalLong epoch,
                                     final PublicKey custodian);
 
-  Instruction setStakeAccountLockupChecked(final PublicKey initializedStakeAccount,
-                                           final PublicKey lockupOrWithdrawAuthority,
-                                           final Instant timestamp,
-                                           final OptionalLong epoch);
+  default Instruction setStakeAccountLockupChecked(final PublicKey initializedStakeAccount,
+                                                   final PublicKey lockupOrWithdrawAuthority,
+                                                   final Instant timestamp,
+                                                   final OptionalLong epoch) {
+    return setStakeAccountLockupChecked(initializedStakeAccount, lockupOrWithdrawAuthority, null, timestamp, epoch);
+  }
 
   Instruction setStakeAccountLockupChecked(final PublicKey initializedStakeAccount,
                                            final PublicKey lockupOrWithdrawAuthority,
@@ -145,10 +150,18 @@ public interface NativeProgramClient {
                                     final PublicKey newAuthority,
                                     final StakeProgram.StakeAuthorize stakeAuthorize);
 
-  Instruction authorizeStakeAccount(final PublicKey stakeAccount,
-                                    final PublicKey stakeOrWithdrawAuthority,
-                                    final PublicKey newAuthority,
-                                    final StakeProgram.StakeAuthorize stakeAuthorize);
+  default Instruction authorizeStakeAccount(final PublicKey stakeAccount,
+                                            final PublicKey stakeOrWithdrawAuthority,
+                                            final PublicKey newAuthority,
+                                            final StakeProgram.StakeAuthorize stakeAuthorize) {
+    return authorizeStakeAccount(
+        stakeAccount,
+        stakeOrWithdrawAuthority,
+        null,
+        newAuthority,
+        stakeAuthorize
+    );
+  }
 
   default Instruction authorizeStakeAccount(final StakeAccount stakeAccount,
                                             final PublicKey newAuthority,
@@ -169,10 +182,18 @@ public interface NativeProgramClient {
                                            final PublicKey lockupAuthority,
                                            final StakeProgram.StakeAuthorize stakeAuthorize);
 
-  Instruction authorizeStakeAccountChecked(final PublicKey stakeAccount,
-                                           final PublicKey stakeOrWithdrawAuthority,
-                                           final PublicKey newStakeOrWithdrawAuthority,
-                                           final StakeProgram.StakeAuthorize stakeAuthorize);
+  default Instruction authorizeStakeAccountChecked(final PublicKey stakeAccount,
+                                                   final PublicKey stakeOrWithdrawAuthority,
+                                                   final PublicKey newStakeOrWithdrawAuthority,
+                                                   final StakeProgram.StakeAuthorize stakeAuthorize) {
+    return authorizeStakeAccountChecked(
+        stakeAccount,
+        stakeOrWithdrawAuthority,
+        newStakeOrWithdrawAuthority,
+        null,
+        stakeAuthorize
+    );
+  }
 
   default Instruction authorizeStakeAccountChecked(final StakeAccount stakeAccount,
                                                    final PublicKey newAuthority,
@@ -194,11 +215,20 @@ public interface NativeProgramClient {
                                             final StakeProgram.StakeAuthorize stakeAuthorize,
                                             final PublicKey authorityOwner);
 
-  Instruction authorizeStakeAccountWithSeed(final PublicKey stakeAccount,
-                                            final AccountWithSeed baseKeyOrWithdrawAuthority,
-                                            final PublicKey newAuthorizedPublicKey,
-                                            final StakeProgram.StakeAuthorize stakeAuthorize,
-                                            final PublicKey authorityOwner);
+  default Instruction authorizeStakeAccountWithSeed(final PublicKey stakeAccount,
+                                                    final AccountWithSeed baseKeyOrWithdrawAuthority,
+                                                    final PublicKey newAuthorizedPublicKey,
+                                                    final StakeProgram.StakeAuthorize stakeAuthorize,
+                                                    final PublicKey authorityOwner) {
+    return authorizeStakeAccountWithSeed(
+        stakeAccount,
+        baseKeyOrWithdrawAuthority,
+        null,
+        newAuthorizedPublicKey,
+        stakeAuthorize,
+        authorityOwner
+    );
+  }
 
   Instruction authorizeStakeAccountCheckedWithSeed(final PublicKey stakeAccount,
                                                    final AccountWithSeed baseKeyOrWithdrawAuthority,
@@ -220,12 +250,12 @@ public interface NativeProgramClient {
                                             final PublicKey staker,
                                             final PublicKey withdrawer);
 
-  Instruction delegateStakeAccount(StakeAccount initializedStakeAccount,
-                                   PublicKey validatorVoteAccount);
+  Instruction delegateStakeAccount(final StakeAccount initializedStakeAccount,
+                                   final PublicKey validatorVoteAccount);
 
-  Instruction reDelegateStakeAccount(StakeAccount delegatedStakeAccount,
-                                     PublicKey uninitializedStakeAccount,
-                                     PublicKey validatorVoteAccount);
+  Instruction reDelegateStakeAccount(final StakeAccount delegatedStakeAccount,
+                                     final PublicKey uninitializedStakeAccount,
+                                     final PublicKey validatorVoteAccount);
 
   Instruction splitStakeAccount(final StakeAccount splitStakeAccount,
                                 final PublicKey unInitializedStakeAccount,
@@ -239,27 +269,90 @@ public interface NativeProgramClient {
     return mergeStakeAccounts(destinationStakeAccount, srcStakeAccount.address());
   }
 
-  List<Instruction> mergeStakeAccountKeysInto(StakeAccount destinationStakeAccount, Collection<PublicKey> stakeAccounts);
+  default List<Instruction> mergeStakeAccountKeysInto(final StakeAccount destinationStakeAccount, final Collection<PublicKey> stakeAccounts) {
+    return stakeAccounts.stream()
+        .map(stakeAccount -> mergeStakeAccounts(destinationStakeAccount, stakeAccount))
+        .toList();
+  }
 
-  List<Instruction> mergeStakeAccountsInto(StakeAccount destinationStakeAccount, Collection<StakeAccount> stakeAccounts);
+  default List<Instruction> mergeStakeAccountsInto(final StakeAccount destinationStakeAccount, final Collection<StakeAccount> stakeAccounts) {
+    return stakeAccounts.stream()
+        .map(StakeAccount::address)
+        .map(stakeAccount -> mergeStakeAccounts(destinationStakeAccount, stakeAccount))
+        .toList();
+  }
 
-  List<Instruction> mergeStakeAccountInfosInto(StakeAccount destinationStakeAccount, Collection<AccountInfo<StakeAccount>> stakeAccounts);
+  default List<Instruction> mergeStakeAccountInfosInto(final StakeAccount destinationStakeAccount, final Collection<AccountInfo<StakeAccount>> stakeAccounts) {
+    return stakeAccounts.stream()
+        .map(AccountInfo::data)
+        .map(StakeAccount::address)
+        .map(stakeAccount -> mergeStakeAccounts(destinationStakeAccount, stakeAccount))
+        .toList();
+  }
 
-  List<Instruction> mergeStakeAccounts(List<StakeAccount> stakeAccounts);
+  default List<Instruction> mergeStakeAccounts(final List<StakeAccount> stakeAccounts) {
+    if (stakeAccounts.size() < 2) {
+      return List.of();
+    } else {
+      final var mergeInto = stakeAccounts.getFirst();
+      return stakeAccounts.stream().skip(1)
+          .map(StakeAccount::address)
+          .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
+          .toList();
+    }
+  }
 
-  List<Instruction> mergeStakeAccountInfos(List<AccountInfo<StakeAccount>> stakeAccounts);
+  default List<Instruction> mergeStakeAccountInfos(final List<AccountInfo<StakeAccount>> stakeAccounts) {
+    if (stakeAccounts.size() < 2) {
+      return List.of();
+    } else {
+      final var mergeInto = stakeAccounts.getFirst().data();
+      return stakeAccounts.stream().skip(1)
+          .map(AccountInfo::data)
+          .map(StakeAccount::address)
+          .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
+          .toList();
+    }
+  }
 
-  List<Instruction> mergeStakeAccounts(Collection<StakeAccount> stakeAccounts);
+  default List<Instruction> mergeStakeAccounts(final Collection<StakeAccount> stakeAccounts) {
+    if (stakeAccounts.size() < 2) {
+      return List.of();
+    } else {
+      final var array = stakeAccounts.toArray(StakeAccount[]::new);
+      final var mergeInto = array[0];
+      return Arrays.stream(array, 1, array.length)
+          .map(StakeAccount::address)
+          .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
+          .toList();
+    }
+  }
 
-  List<Instruction> mergeStakeAccountInfos(Collection<AccountInfo<StakeAccount>> stakeAccounts);
+  default List<Instruction> mergeStakeAccountInfos(final Collection<AccountInfo<StakeAccount>> stakeAccounts) {
+    @SuppressWarnings("unchecked") final AccountInfo<StakeAccount>[] array = stakeAccounts.toArray(AccountInfo[]::new);
+    final var mergeInto = (StakeAccount) array[0].data();
+    return Arrays.stream(array, 1, array.length)
+        .map(AccountInfo::data)
+        .map(StakeAccount::address)
+        .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
+        .toList();
+  }
 
   Instruction withdrawStakeAccount(final StakeAccount stakeAccount,
                                    final PublicKey recipient,
                                    final long lamports);
 
-  Instruction deactivateStakeAccount(final StakeAccount delegatedStakeAccount);
+  Instruction deactivateStakeAccount(final PublicKey delegatedStakeAccount, final PublicKey stakeAuthority);
 
-  List<Instruction> deactivateStakeAccountInfos(final Collection<AccountInfo<StakeAccount>> delegatedStakeAccounts);
+  default Instruction deactivateStakeAccount(StakeAccount delegatedStakeAccount) {
+    return deactivateStakeAccount(delegatedStakeAccount.address(), delegatedStakeAccount.stakeAuthority());
+  }
 
-  List<Instruction> deactivateStakeAccounts(final Collection<StakeAccount> delegatedStakeAccounts);
+  default List<Instruction> deactivateStakeAccountInfos(Collection<AccountInfo<StakeAccount>> delegatedStakeAccounts) {
+    return delegatedStakeAccounts.stream().map(AccountInfo::data).map(this::deactivateStakeAccount).toList();
+  }
+
+  default List<Instruction> deactivateStakeAccounts(Collection<StakeAccount> delegatedStakeAccounts) {
+    return delegatedStakeAccounts.stream().map(this::deactivateStakeAccount).toList();
+  }
 }
