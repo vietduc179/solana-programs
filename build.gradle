@@ -30,7 +30,6 @@ ext {
   bouncycastleMinor = 'jdk18on'
   bouncycastlePatch = '1.78.1' // https://www.bouncycastle.org/latest_releases.html#LATEST
 
-
   sava = '[1,)'
 }
 
