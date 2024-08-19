@@ -194,12 +194,38 @@ public interface NativeProgramClient {
                                             final PublicKey staker,
                                             final PublicKey withdrawer);
 
+  Instruction delegateStakeAccount(StakeAccount initializedStakeAccount,
+                                   PublicKey validatorVoteAccount);
+
+  Instruction reDelegateStakeAccount(StakeAccount delegatedStakeAccount,
+                                     PublicKey uninitializedStakeAccount,
+                                     PublicKey validatorVoteAccount);
+
   Instruction splitStakeAccount(final StakeAccount splitStakeAccount,
                                 final PublicKey unInitializedStakeAccount,
                                 final long lamports);
 
   Instruction mergeStakeAccounts(final StakeAccount destinationStakeAccount,
                                  final PublicKey srcStakeAccount);
+
+  default Instruction mergeStakeAccounts(final StakeAccount destinationStakeAccount,
+                                         final StakeAccount srcStakeAccount) {
+    return mergeStakeAccounts(destinationStakeAccount, srcStakeAccount.address());
+  }
+
+  List<Instruction> mergeStakeAccountKeysInto(StakeAccount destinationStakeAccount, Collection<PublicKey> stakeAccounts);
+
+  List<Instruction> mergeStakeAccountsInto(StakeAccount destinationStakeAccount, Collection<StakeAccount> stakeAccounts);
+
+  List<Instruction> mergeStakeAccountInfosInto(StakeAccount destinationStakeAccount, Collection<AccountInfo<StakeAccount>> stakeAccounts);
+
+  List<Instruction> mergeStakeAccounts(List<StakeAccount> stakeAccounts);
+
+  List<Instruction> mergeStakeAccountInfos(List<AccountInfo<StakeAccount>> stakeAccounts);
+
+  List<Instruction> mergeStakeAccounts(Collection<StakeAccount> stakeAccounts);
+
+  List<Instruction> mergeStakeAccountInfos(Collection<AccountInfo<StakeAccount>> stakeAccounts);
 
   Instruction withdrawStakeAccount(final StakeAccount stakeAccount,
                                    final PublicKey recipient,

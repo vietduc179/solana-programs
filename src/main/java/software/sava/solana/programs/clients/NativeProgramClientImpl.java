@@ -369,6 +369,7 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
     );
   }
 
+  @Override
   public Instruction delegateStakeAccount(final StakeAccount initializedStakeAccount,
                                           final PublicKey validatorVoteAccount) {
     return StakeProgram.delegateStake(
@@ -379,6 +380,7 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
     );
   }
 
+  @Override
   public Instruction reDelegateStakeAccount(final StakeAccount delegatedStakeAccount,
                                             final PublicKey uninitializedStakeAccount,
                                             final PublicKey validatorVoteAccount) {
@@ -391,6 +393,7 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
     );
   }
 
+  @Override
   public Instruction splitStakeAccount(final StakeAccount splitStakeAccount,
                                        final PublicKey unInitializedStakeAccount,
                                        final long lamports) {
@@ -403,6 +406,7 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
     );
   }
 
+  @Override
   public Instruction mergeStakeAccounts(final StakeAccount destinationStakeAccount,
                                         final PublicKey srcStakeAccount) {
     return StakeProgram.merge(
@@ -413,12 +417,14 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
     );
   }
 
+  @Override
   public List<Instruction> mergeStakeAccountKeysInto(final StakeAccount destinationStakeAccount, final Collection<PublicKey> stakeAccounts) {
     return stakeAccounts.stream()
         .map(stakeAccount -> mergeStakeAccounts(destinationStakeAccount, stakeAccount))
         .toList();
   }
 
+  @Override
   public List<Instruction> mergeStakeAccountsInto(final StakeAccount destinationStakeAccount, final Collection<StakeAccount> stakeAccounts) {
     return stakeAccounts.stream()
         .map(StakeAccount::address)
@@ -426,6 +432,7 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
         .toList();
   }
 
+  @Override
   public List<Instruction> mergeStakeAccountInfosInto(final StakeAccount destinationStakeAccount, final Collection<AccountInfo<StakeAccount>> stakeAccounts) {
     return stakeAccounts.stream()
         .map(AccountInfo::data)
@@ -434,6 +441,7 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
         .toList();
   }
 
+  @Override
   public List<Instruction> mergeStakeAccounts(final List<StakeAccount> stakeAccounts) {
     if (stakeAccounts.size() < 2) {
       return List.of();
@@ -446,6 +454,7 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
     }
   }
 
+  @Override
   public List<Instruction> mergeStakeAccountInfos(final List<AccountInfo<StakeAccount>> stakeAccounts) {
     if (stakeAccounts.size() < 2) {
       return List.of();
@@ -459,6 +468,7 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
     }
   }
 
+  @Override
   public List<Instruction> mergeStakeAccounts(final Collection<StakeAccount> stakeAccounts) {
     if (stakeAccounts.size() < 2) {
       return List.of();
@@ -472,6 +482,7 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
     }
   }
 
+  @Override
   public List<Instruction> mergeStakeAccountInfos(final Collection<AccountInfo<StakeAccount>> stakeAccounts) {
     @SuppressWarnings("unchecked") final AccountInfo<StakeAccount>[] array = stakeAccounts.toArray(AccountInfo[]::new);
     final var mergeInto = (StakeAccount) array[0].data();
