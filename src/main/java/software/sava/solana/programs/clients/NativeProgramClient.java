@@ -344,7 +344,7 @@ public interface NativeProgramClient {
 
   Instruction deactivateStakeAccount(final PublicKey delegatedStakeAccount, final PublicKey stakeAuthority);
 
-  default Instruction deactivateStakeAccount(StakeAccount delegatedStakeAccount) {
+  default Instruction deactivateStakeAccount(final StakeAccount delegatedStakeAccount) {
     return deactivateStakeAccount(delegatedStakeAccount.address(), delegatedStakeAccount.stakeAuthority());
   }
 
