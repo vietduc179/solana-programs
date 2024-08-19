@@ -291,13 +291,6 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
   }
 
   @Override
-  public Instruction initializeStakeAccount(final PublicKey unInitializedStakeAccount,
-                                            final PublicKey staker,
-                                            final PublicKey withdrawer) {
-    return initializeStakeAccount(unInitializedStakeAccount, staker, withdrawer, LockUp.NO_LOCKUP);
-  }
-
-  @Override
   public Instruction initializeStakeAccountChecked(final PublicKey unInitializedStakeAccount,
                                                    final PublicKey staker,
                                                    final PublicKey withdrawer) {

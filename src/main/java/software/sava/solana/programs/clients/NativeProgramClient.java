@@ -242,9 +242,11 @@ public interface NativeProgramClient {
                                      final PublicKey withdrawer,
                                      final LockUp lockUp);
 
-  Instruction initializeStakeAccount(final PublicKey unInitializedStakeAccount,
-                                     final PublicKey staker,
-                                     final PublicKey withdrawer);
+  default Instruction initializeStakeAccount(final PublicKey unInitializedStakeAccount,
+                                             final PublicKey staker,
+                                             final PublicKey withdrawer) {
+    return initializeStakeAccount(unInitializedStakeAccount, staker, withdrawer, LockUp.NO_LOCKUP);
+  }
 
   Instruction initializeStakeAccountChecked(final PublicKey unInitializedStakeAccount,
                                             final PublicKey staker,
