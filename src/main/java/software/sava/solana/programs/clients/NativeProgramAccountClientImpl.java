@@ -14,6 +14,7 @@ import software.sava.rpc.json.http.client.SolanaRpcClient;
 import software.sava.rpc.json.http.response.AccountInfo;
 import software.sava.solana.programs.address_lookup_table.AddressLookupTableProgram;
 import software.sava.solana.programs.stake.StakeAccount;
+import software.sava.solana.programs.stake.StakeProgram;
 import software.sava.solana.programs.stake.StakeState;
 import software.sava.solana.programs.system.SystemProgram;
 import software.sava.solana.programs.token.AssociatedTokenProgram;
@@ -523,6 +524,58 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
         unInitializedStakeAccount,
         owner,
         owner
+    );
+  }
+
+
+  @Override
+  public Instruction authorizeStakeAccount(final PublicKey stakeAccount,
+                                           final PublicKey stakeOrWithdrawAuthority,
+                                           final PublicKey lockupAuthority,
+                                           final StakeProgram.StakeAuthorize stakeAuthorize) {
+    return nativeProgramClient.authorizeStakeAccount(
+        stakeAccount,
+        stakeOrWithdrawAuthority,
+        owner,
+        lockupAuthority,
+        stakeAuthorize
+    );
+  }
+
+  @Override
+  public Instruction authorizeStakeAccount(final PublicKey stakeAccount,
+                                           final PublicKey stakeOrWithdrawAuthority,
+                                           final StakeProgram.StakeAuthorize stakeAuthorize) {
+    return nativeProgramClient.authorizeStakeAccount(
+        stakeAccount,
+        stakeOrWithdrawAuthority,
+        owner,
+        stakeAuthorize
+    );
+  }
+
+  @Override
+  public Instruction authorizeStakeAccountChecked(final PublicKey stakeAccount,
+                                                  final PublicKey stakeOrWithdrawAuthority,
+                                                  final PublicKey newStakeOrWithdrawAuthority,
+                                                  final StakeProgram.StakeAuthorize stakeAuthorize) {
+    return nativeProgramClient.authorizeStakeAccountChecked(
+        stakeAccount,
+        stakeOrWithdrawAuthority,
+        owner,
+        stakeAuthorize
+    );
+  }
+
+  @Override
+  public Instruction authorizeStakeAccountChecked(final PublicKey stakeAccount,
+                                                  final PublicKey stakeOrWithdrawAuthority,
+                                                  final StakeProgram.StakeAuthorize stakeAuthorize) {
+    return nativeProgramClient.authorizeStakeAccountChecked(
+        stakeAccount,
+        stakeOrWithdrawAuthority,
+        owner,
+        stakeAuthorize
     );
   }
 

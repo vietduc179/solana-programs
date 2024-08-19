@@ -150,6 +150,19 @@ public interface NativeProgramClient {
                                     final PublicKey newAuthority,
                                     final StakeProgram.StakeAuthorize stakeAuthorize);
 
+  default Instruction authorizeStakeAccount(final StakeAccount stakeAccount,
+                                            final PublicKey newAuthority,
+                                            final StakeProgram.StakeAuthorize stakeAuthorize) {
+    return authorizeStakeAccount(
+        stakeAccount.address(),
+        stakeAuthorize == StakeProgram.StakeAuthorize.Staker
+            ? stakeAccount.stakeAuthority()
+            : stakeAccount.withdrawAuthority(),
+        newAuthority,
+        stakeAuthorize
+    );
+  }
+
   Instruction authorizeStakeAccountChecked(final PublicKey stakeAccount,
                                            final PublicKey stakeOrWithdrawAuthority,
                                            final PublicKey newStakeOrWithdrawAuthority,
@@ -160,6 +173,19 @@ public interface NativeProgramClient {
                                            final PublicKey stakeOrWithdrawAuthority,
                                            final PublicKey newStakeOrWithdrawAuthority,
                                            final StakeProgram.StakeAuthorize stakeAuthorize);
+
+  default Instruction authorizeStakeAccountChecked(final StakeAccount stakeAccount,
+                                                   final PublicKey newAuthority,
+                                                   final StakeProgram.StakeAuthorize stakeAuthorize) {
+    return authorizeStakeAccountChecked(
+        stakeAccount.address(),
+        stakeAuthorize == StakeProgram.StakeAuthorize.Staker
+            ? stakeAccount.stakeAuthority()
+            : stakeAccount.withdrawAuthority(),
+        newAuthority,
+        stakeAuthorize
+    );
+  }
 
   Instruction authorizeStakeAccountWithSeed(final PublicKey stakeAccount,
                                             final AccountWithSeed baseKeyOrWithdrawAuthority,

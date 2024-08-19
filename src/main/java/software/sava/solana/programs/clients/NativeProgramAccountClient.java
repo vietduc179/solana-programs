@@ -10,6 +10,7 @@ import software.sava.core.tx.Transaction;
 import software.sava.rpc.json.http.client.SolanaRpcClient;
 import software.sava.rpc.json.http.response.AccountInfo;
 import software.sava.solana.programs.stake.StakeAccount;
+import software.sava.solana.programs.stake.StakeProgram;
 import software.sava.solana.programs.stake.StakeState;
 
 import java.util.Collection;
@@ -273,7 +274,47 @@ public interface NativeProgramAccountClient {
                                             final PublicKey staker);
 
   Instruction initializeStakeAccountChecked(final PublicKey unInitializedStakeAccount);
-  
+
+  Instruction authorizeStakeAccount(final PublicKey stakeAccount,
+                                    final PublicKey stakeOrWithdrawAuthority,
+                                    final PublicKey lockupAuthority,
+                                    final StakeProgram.StakeAuthorize stakeAuthorize);
+
+  Instruction authorizeStakeAccount(final PublicKey stakeAccount,
+                                    final PublicKey stakeOrWithdrawAuthority,
+                                    final StakeProgram.StakeAuthorize stakeAuthorize);
+
+  default Instruction authorizeStakeAccount(final StakeAccount stakeAccount,
+                                            final StakeProgram.StakeAuthorize stakeAuthorize) {
+    return authorizeStakeAccount(
+        stakeAccount.address(),
+        stakeAuthorize == StakeProgram.StakeAuthorize.Staker
+            ? stakeAccount.stakeAuthority()
+            : stakeAccount.withdrawAuthority(),
+        stakeAuthorize
+    );
+  }
+
+  Instruction authorizeStakeAccountChecked(final PublicKey stakeAccount,
+                                           final PublicKey stakeOrWithdrawAuthority,
+                                           final PublicKey newStakeOrWithdrawAuthority,
+                                           final StakeProgram.StakeAuthorize stakeAuthorize);
+
+  Instruction authorizeStakeAccountChecked(final PublicKey stakeAccount,
+                                           final PublicKey stakeOrWithdrawAuthority,
+                                           final StakeProgram.StakeAuthorize stakeAuthorize);
+
+  default Instruction authorizeStakeAccountChecked(final StakeAccount stakeAccount,
+                                                   final StakeProgram.StakeAuthorize stakeAuthorize) {
+    return authorizeStakeAccountChecked(
+        stakeAccount.address(),
+        stakeAuthorize == StakeProgram.StakeAuthorize.Staker
+            ? stakeAccount.stakeAuthority()
+            : stakeAccount.withdrawAuthority(),
+        stakeAuthorize
+    );
+  }
+
   Instruction deactivateStakeAccount(final StakeAccount delegatedStakeAccount);
 
   List<Instruction> deactivateStakeAccountInfos(final Collection<AccountInfo<StakeAccount>> delegatedStakeAccounts);
