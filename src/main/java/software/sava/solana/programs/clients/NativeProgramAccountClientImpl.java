@@ -40,7 +40,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
     this.solanaAccounts = solanaAccounts;
     this.nativeProgramClient = NativeProgramClient.createClient(solanaAccounts);
     this.owner = owner;
-    this.wrappedSolPDA = findAssociatedTokenProgramAddress(solanaAccounts.wrappedSolTokenMint());
+    this.wrappedSolPDA = findATA(solanaAccounts.wrappedSolTokenMint());
     this.feePayer = feePayer;
   }
 
@@ -51,7 +51,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
     this.nativeProgramClient = nativeProgramClient;
     this.owner = owner;
     this.feePayer = feePayer;
-    this.wrappedSolPDA = findAssociatedTokenProgramAddress(solanaAccounts.wrappedSolTokenMint());
+    this.wrappedSolPDA = findATA(solanaAccounts.wrappedSolTokenMint());
   }
 
   @Override
@@ -259,25 +259,25 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   }
 
   @Override
-  public ProgramDerivedAddress findAssociatedTokenProgramAddress(final PublicKey mint) {
-    return AssociatedTokenProgram.findAssociatedTokenProgramAddress(solanaAccounts, owner, mint);
+  public ProgramDerivedAddress findATA(final PublicKey mint) {
+    return AssociatedTokenProgram.findATA(solanaAccounts, owner, mint);
   }
 
   @Override
-  public ProgramDerivedAddress findAssociatedTokenProgramAddress(final PublicKey mint,
-                                                                 final PublicKey tokenProgram) {
-    return AssociatedTokenProgram.findAssociatedTokenProgramAddress(solanaAccounts, tokenProgram, owner, mint);
+  public ProgramDerivedAddress findATA(final PublicKey mint,
+                                       final PublicKey tokenProgram) {
+    return AssociatedTokenProgram.findATA(solanaAccounts, tokenProgram, owner, mint);
   }
 
   @Override
-  public ProgramDerivedAddress findAssociatedTokenProgramAddressForFeePayer(final PublicKey mint) {
-    return AssociatedTokenProgram.findAssociatedTokenProgramAddress(solanaAccounts, feePayer.publicKey(), mint);
+  public ProgramDerivedAddress findATAForFeePayer(final PublicKey mint) {
+    return AssociatedTokenProgram.findATA(solanaAccounts, feePayer.publicKey(), mint);
   }
 
   @Override
-  public ProgramDerivedAddress findAssociatedTokenProgramAddressForFeePayer(final PublicKey mint,
-                                                                            final PublicKey tokenProgram) {
-    return AssociatedTokenProgram.findAssociatedTokenProgramAddress(solanaAccounts, tokenProgram, feePayer.publicKey(), mint);
+  public ProgramDerivedAddress findATAForFeePayer(final PublicKey mint,
+                                                  final PublicKey tokenProgram) {
+    return AssociatedTokenProgram.findATA(solanaAccounts, tokenProgram, feePayer.publicKey(), mint);
   }
 
   @Override

@@ -173,15 +173,15 @@ public interface NativeProgramAccountClient {
                                 final List<Instruction> instructions,
                                 final LookupTableAccountMeta[] tableAccountMetas);
 
-  ProgramDerivedAddress findAssociatedTokenProgramAddress(final PublicKey mint);
+  ProgramDerivedAddress findATA(final PublicKey mint);
 
-  ProgramDerivedAddress findAssociatedTokenProgramAddress(final PublicKey mint,
-                                                          final PublicKey tokenProgram);
+  ProgramDerivedAddress findATA(final PublicKey mint,
+                                final PublicKey tokenProgram);
 
-  ProgramDerivedAddress findAssociatedTokenProgramAddressForFeePayer(final PublicKey mint);
+  ProgramDerivedAddress findATAForFeePayer(final PublicKey mint);
 
-  ProgramDerivedAddress findAssociatedTokenProgramAddressForFeePayer(final PublicKey mint,
-                                                                     final PublicKey tokenProgram);
+  ProgramDerivedAddress findATAForFeePayer(final PublicKey mint,
+                                           final PublicKey tokenProgram);
 
   CompletableFuture<List<AccountInfo<TokenAccount>>> fetchTokenAccounts(final SolanaRpcClient rpcClient,
                                                                         final PublicKey tokenMintAddress);
