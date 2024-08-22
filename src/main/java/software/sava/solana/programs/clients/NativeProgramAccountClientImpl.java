@@ -264,6 +264,23 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   }
 
   @Override
+  public ProgramDerivedAddress findAssociatedTokenProgramAddress(final PublicKey mint,
+                                                                 final PublicKey tokenProgram) {
+    return AssociatedTokenProgram.findAssociatedTokenProgramAddress(solanaAccounts, tokenProgram, owner, mint);
+  }
+
+  @Override
+  public ProgramDerivedAddress findAssociatedTokenProgramAddressForFeePayer(final PublicKey mint) {
+    return AssociatedTokenProgram.findAssociatedTokenProgramAddress(solanaAccounts, feePayer.publicKey(), mint);
+  }
+
+  @Override
+  public ProgramDerivedAddress findAssociatedTokenProgramAddressForFeePayer(final PublicKey mint,
+                                                                            final PublicKey tokenProgram) {
+    return AssociatedTokenProgram.findAssociatedTokenProgramAddress(solanaAccounts, tokenProgram, feePayer.publicKey(), mint);
+  }
+
+  @Override
   public CompletableFuture<List<AccountInfo<TokenAccount>>> fetchTokenAccounts(final SolanaRpcClient rpcClient, final PublicKey tokenMintAddress) {
     return rpcClient.getTokenAccountsForTokenMintByOwner(owner, tokenMintAddress);
   }

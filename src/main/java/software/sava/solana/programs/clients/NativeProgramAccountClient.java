@@ -175,6 +175,14 @@ public interface NativeProgramAccountClient {
 
   ProgramDerivedAddress findAssociatedTokenProgramAddress(final PublicKey mint);
 
+  ProgramDerivedAddress findAssociatedTokenProgramAddress(final PublicKey mint,
+                                                          final PublicKey tokenProgram);
+
+  ProgramDerivedAddress findAssociatedTokenProgramAddressForFeePayer(final PublicKey mint);
+
+  ProgramDerivedAddress findAssociatedTokenProgramAddressForFeePayer(final PublicKey mint,
+                                                                     final PublicKey tokenProgram);
+
   CompletableFuture<List<AccountInfo<TokenAccount>>> fetchTokenAccounts(final SolanaRpcClient rpcClient,
                                                                         final PublicKey tokenMintAddress);
 
