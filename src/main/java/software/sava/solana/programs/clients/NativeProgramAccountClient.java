@@ -12,6 +12,7 @@ import software.sava.rpc.json.http.response.AccountInfo;
 import software.sava.solana.programs.stake.StakeAccount;
 import software.sava.solana.programs.stake.StakeAuthorize;
 import software.sava.solana.programs.stake.StakeState;
+import software.sava.solana.programs.token.AssociatedTokenProgram;
 
 import java.util.Collection;
 import java.util.List;
@@ -252,129 +253,297 @@ public interface NativeProgramAccountClient {
 
   Instruction closeTokenAccount(final PublicKey tokenAccount);
 
-  Instruction createATAForFundedBy(final boolean idempotent,
-                                   final AccountMeta tokenProgram,
-                                   final PublicKey tokenAccountOwner,
-                                   final PublicKey programDerivedAddress,
-                                   final PublicKey mint,
-                                   final PublicKey fundingAccount);
-
-  Instruction createATAForFundedBy(final boolean idempotent,
-                                   final AccountMeta tokenProgram,
-                                   final  PublicKey tokenAccountOwner,
-                                   final  PublicKey mint,
-                                   final PublicKey fundingAccount);
-
-  Instruction createATAForFundedByFeePayer(final boolean idempotent,
+  default Instruction createATAForFundedBy(boolean idempotent,
                                            final AccountMeta tokenProgram,
                                            final PublicKey tokenAccountOwner,
                                            final PublicKey programDerivedAddress,
-                                           final PublicKey mint);
+                                           final PublicKey mint,
+                                           final PublicKey fundingAccount) {
+    return AssociatedTokenProgram.createATAForProgram(
+        idempotent,
+        solanaAccounts(),
+        tokenProgram,
+        fundingAccount,
+        programDerivedAddress,
+        tokenAccountOwner,
+        mint
+    );
+  }
 
-  Instruction createATAForFundedByFeePayer(final boolean idempotent,
+  default Instruction createATAForFundedBy(final boolean idempotent,
                                            final AccountMeta tokenProgram,
                                            final PublicKey tokenAccountOwner,
-                                           final PublicKey mint);
+                                           final PublicKey mint,
+                                           final PublicKey fundingAccount) {
+    return AssociatedTokenProgram.createATAForProgram(
+        idempotent,
+        solanaAccounts(),
+        tokenProgram,
+        fundingAccount,
+        tokenAccountOwner,
+        mint
+    );
+  }
 
-  Instruction createATAForFundedByOwner(final boolean idempotent,
-                                        final AccountMeta tokenProgram,
-                                        final PublicKey tokenAccountOwner,
-                                        final PublicKey programDerivedAddress,
-                                        final PublicKey mint);
-
-  Instruction createATAForFundedByOwner(final boolean idempotent,
-                                        final AccountMeta tokenProgram,
-                                        final PublicKey tokenAccountOwner,
-                                        final PublicKey mint);
-
-  Instruction createATAForOwnerFundedByOwner(final boolean idempotent,
-                                             final AccountMeta tokenProgram,
-                                             final PublicKey programDerivedAddress,
-                                             final PublicKey mint);
-
-  Instruction createATAForOwnerFundedByOwner(final boolean idempotent,
-                                             final AccountMeta tokenProgram,
-                                             final PublicKey mint);
-
-  Instruction createATAForOwnerFundedByFeePayer(final boolean idempotent,
-                                                final AccountMeta tokenProgram,
-                                                final PublicKey programDerivedAddress,
-                                                final PublicKey mint);
-
-  Instruction createATAForOwnerFundedByFeePayer(final boolean idempotent,
-                                                final AccountMeta tokenProgram,
-                                                final PublicKey mint);
-
-  Instruction createATAForFeePayerFundedByOwner(final boolean idempotent,
-                                                final AccountMeta tokenProgram,
-                                                final PublicKey programDerivedAddress,
-                                                final PublicKey mint);
-
-  Instruction createATAForFeePayerFundedByOwner(final boolean idempotent,
-                                                final AccountMeta tokenProgram,
-                                                final PublicKey mint);
-
-  Instruction createATAForFeePayerFundedByFeePayer(final boolean idempotent,
+  default Instruction createATAForFundedByFeePayer(final boolean idempotent,
                                                    final AccountMeta tokenProgram,
+                                                   final PublicKey tokenAccountOwner,
                                                    final PublicKey programDerivedAddress,
-                                                   final PublicKey mint);
+                                                   final PublicKey mint) {
+    return createATAForFundedBy(
+        idempotent,
+        tokenProgram,
+        programDerivedAddress,
+        tokenAccountOwner,
+        mint,
+        feePayer().publicKey()
+    );
+  }
 
-  Instruction createATAForFeePayerFundedByFeePayer(final boolean idempotent,
+  default Instruction createATAForFundedByFeePayer(final boolean idempotent,
                                                    final AccountMeta tokenProgram,
-                                                   final PublicKey mint);
+                                                   final PublicKey tokenAccountOwner,
+                                                   final PublicKey mint) {
+    return createATAForFundedBy(
+        idempotent,
+        tokenProgram,
+        tokenAccountOwner,
+        mint,
+        feePayer().publicKey()
+    );
+  }
 
-  Instruction createATAForFundedBy(final boolean idempotent,
-                                   final PublicKey tokenAccountOwner,
-                                   final PublicKey programDerivedAddress,
-                                   final PublicKey mint,
-                                   final PublicKey fundingAccount);
+  default Instruction createATAForFundedByOwner(final boolean idempotent,
+                                                final AccountMeta tokenProgram,
+                                                final PublicKey tokenAccountOwner,
+                                                final PublicKey programDerivedAddress,
+                                                final PublicKey mint) {
+    return createATAForFundedBy(
+        idempotent,
+        tokenProgram,
+        programDerivedAddress,
+        tokenAccountOwner,
+        mint,
+        ownerPublicKey()
+    );
+  }
 
-  Instruction createATAForFundedBy(final boolean idempotent,
-                                   final PublicKey tokenAccountOwner,
-                                   final PublicKey mint,
-                                   final PublicKey fundingAccount);
+  default Instruction createATAForFundedByOwner(final boolean idempotent,
+                                                final AccountMeta tokenProgram,
+                                                final PublicKey tokenAccountOwner,
+                                                final PublicKey mint) {
+    return createATAForFundedBy(
+        idempotent,
+        tokenProgram,
+        tokenAccountOwner,
+        mint,
+        ownerPublicKey()
+    );
+  }
 
-  Instruction createATAForFundedByFeePayer(final boolean idempotent,
+  default Instruction createATAForOwnerFundedByOwner(final boolean idempotent,
+                                                     final AccountMeta tokenProgram,
+                                                     final PublicKey programDerivedAddress,
+                                                     final PublicKey mint) {
+    return createATAForFundedByOwner(idempotent, tokenProgram, ownerPublicKey(), programDerivedAddress, mint);
+  }
+
+  default Instruction createATAForOwnerFundedByOwner(final boolean idempotent,
+                                                     final AccountMeta tokenProgram,
+                                                     final PublicKey mint) {
+    return createATAForFundedByOwner(idempotent, tokenProgram, ownerPublicKey(), mint);
+  }
+
+  default Instruction createATAForOwnerFundedByFeePayer(final boolean idempotent,
+                                                        final AccountMeta tokenProgram,
+                                                        final PublicKey programDerivedAddress,
+                                                        final PublicKey mint) {
+    return createATAForFundedByFeePayer(idempotent, tokenProgram, ownerPublicKey(), programDerivedAddress, mint);
+  }
+
+  default Instruction createATAForOwnerFundedByFeePayer(final boolean idempotent,
+                                                        final AccountMeta tokenProgram,
+                                                        final PublicKey mint) {
+    return createATAForFundedByFeePayer(idempotent, tokenProgram, ownerPublicKey(), mint);
+  }
+
+  default Instruction createATAForFeePayerFundedByOwner(final boolean idempotent,
+                                                        final AccountMeta tokenProgram,
+                                                        final PublicKey programDerivedAddress,
+                                                        final PublicKey mint) {
+    return createATAForFundedByOwner(idempotent, tokenProgram, feePayer().publicKey(), programDerivedAddress, mint);
+  }
+
+  default Instruction createATAForFeePayerFundedByOwner(final boolean idempotent,
+                                                        final AccountMeta tokenProgram,
+                                                        final PublicKey mint) {
+    return createATAForFundedByOwner(idempotent, tokenProgram, feePayer().publicKey(), mint);
+  }
+
+  default Instruction createATAForFeePayerFundedByFeePayer(final boolean idempotent,
+                                                           final AccountMeta tokenProgram,
+                                                           final PublicKey programDerivedAddress,
+                                                           final PublicKey mint) {
+    return createATAForFundedByFeePayer(idempotent, tokenProgram, feePayer().publicKey(), programDerivedAddress, mint);
+  }
+
+  default Instruction createATAForFeePayerFundedByFeePayer(final boolean idempotent,
+                                                           final AccountMeta tokenProgram,
+                                                           final PublicKey mint) {
+    return createATAForFundedByFeePayer(idempotent, tokenProgram, feePayer().publicKey(), mint);
+  }
+
+  default Instruction createATAForFundedBy(final boolean idempotent,
                                            final PublicKey tokenAccountOwner,
                                            final PublicKey programDerivedAddress,
-                                           final PublicKey mint);
+                                           final PublicKey mint,
+                                           final PublicKey fundingAccount) {
+    return AssociatedTokenProgram.createATA(
+        idempotent,
+        solanaAccounts(),
+        fundingAccount,
+        programDerivedAddress,
+        tokenAccountOwner,
+        mint
+    );
+  }
 
-  Instruction createATAForFundedByFeePayer(final boolean idempotent,
+  default Instruction createATAForFundedBy(final boolean idempotent,
                                            final PublicKey tokenAccountOwner,
-                                           final PublicKey mint);
+                                           final PublicKey mint,
+                                           final PublicKey fundingAccount) {
+    return createATAForFundedBy(
+        idempotent,
+        solanaAccounts().readTokenProgram(),
+        tokenAccountOwner,
+        mint,
+        fundingAccount
+    );
+  }
 
-  Instruction createATAForFundedByOwner(final boolean idempotent,
-                                        final PublicKey tokenAccountOwner,
-                                        final PublicKey programDerivedAddress,
-                                        final PublicKey mint);
-
-  Instruction createATAForFundedByOwner(final boolean idempotent,
-                                        final PublicKey tokenAccountOwner,
-                                        final PublicKey mint);
-
-  Instruction createATAForOwnerFundedByOwner(final boolean idempotent,
-                                             final PublicKey programDerivedAddress,
-                                             final PublicKey mint);
-
-  Instruction createATAForOwnerFundedByOwner(final boolean idempotent, final PublicKey mint);
-
-  Instruction createATAForOwnerFundedByFeePayer(final boolean idempotent,
-                                                final PublicKey programDerivedAddress,
-                                                final PublicKey mint);
-
-  Instruction createATAForOwnerFundedByFeePayer(final boolean idempotent, final PublicKey mint);
-
-  Instruction createATAForFeePayerFundedByOwner(final boolean idempotent,
-                                                final PublicKey programDerivedAddress,
-                                                final PublicKey mint);
-
-  Instruction createATAForFeePayerFundedByOwner(final boolean idempotent, final PublicKey mint);
-
-  Instruction createATAForFeePayerFundedByFeePayer(final boolean idempotent,
+  default Instruction createATAForFundedByFeePayer(final boolean idempotent,
+                                                   final PublicKey tokenAccountOwner,
                                                    final PublicKey programDerivedAddress,
-                                                   final PublicKey mint);
+                                                   final PublicKey mint) {
+    return createATAForFundedByFeePayer(
+        idempotent,
+        solanaAccounts().readTokenProgram(),
+        tokenAccountOwner,
+        programDerivedAddress,
+        mint
+    );
+  }
 
-  Instruction createATAForFeePayerFundedByFeePayer(final boolean idempotent, PublicKey mint);
+  default Instruction createATAForFundedByFeePayer(final boolean idempotent,
+                                                   final PublicKey tokenAccountOwner,
+                                                   final PublicKey mint) {
+    return createATAForFundedByFeePayer(
+        idempotent,
+        solanaAccounts().readTokenProgram(),
+        tokenAccountOwner,
+        mint
+    );
+  }
+
+  default Instruction createATAForFundedByOwner(final boolean idempotent,
+                                                final PublicKey tokenAccountOwner,
+                                                final PublicKey programDerivedAddress,
+                                                final PublicKey mint) {
+    return createATAForFundedByOwner(
+        idempotent,
+        solanaAccounts().readTokenProgram(),
+        tokenAccountOwner,
+        programDerivedAddress,
+        mint
+    );
+  }
+
+  default Instruction createATAForFundedByOwner(final boolean idempotent,
+                                                final PublicKey tokenAccountOwner,
+                                                final PublicKey mint) {
+    return createATAForFundedByOwner(
+        idempotent,
+        solanaAccounts().readTokenProgram(),
+        tokenAccountOwner,
+        mint
+    );
+  }
+
+  default Instruction createATAForOwnerFundedByOwner(final boolean idempotent,
+                                                     final PublicKey programDerivedAddress,
+                                                     final PublicKey mint) {
+    return createATAForOwnerFundedByOwner(
+        idempotent,
+        solanaAccounts().readTokenProgram(),
+        programDerivedAddress,
+        mint
+    );
+  }
+
+  default Instruction createATAForOwnerFundedByOwner(final boolean idempotent, final PublicKey mint) {
+    return createATAForOwnerFundedByOwner(
+        idempotent,
+        solanaAccounts().readTokenProgram(),
+        mint
+    );
+  }
+
+  default Instruction createATAForOwnerFundedByFeePayer(final boolean idempotent,
+                                                        final PublicKey programDerivedAddress,
+                                                        final PublicKey mint) {
+    return createATAForOwnerFundedByFeePayer(
+        idempotent,
+        solanaAccounts().readTokenProgram(),
+        programDerivedAddress,
+        mint
+    );
+  }
+
+  default Instruction createATAForOwnerFundedByFeePayer(final boolean idempotent, final PublicKey mint) {
+    return createATAForOwnerFundedByFeePayer(
+        idempotent,
+        solanaAccounts().readTokenProgram(),
+        mint
+    );
+  }
+
+  default Instruction createATAForFeePayerFundedByOwner(final boolean idempotent,
+                                                        final PublicKey programDerivedAddress,
+                                                        final PublicKey mint) {
+    return createATAForFeePayerFundedByOwner(
+        idempotent,
+        solanaAccounts().readTokenProgram(),
+        programDerivedAddress,
+        mint
+    );
+  }
+
+  default Instruction createATAForFeePayerFundedByOwner(final boolean idempotent, final PublicKey mint) {
+    return createATAForFeePayerFundedByOwner(
+        idempotent,
+        solanaAccounts().readTokenProgram(),
+        mint
+    );
+  }
+
+  default Instruction createATAForFeePayerFundedByFeePayer(final boolean idempotent,
+                                                           final PublicKey programDerivedAddress,
+                                                           final PublicKey mint) {
+    return createATAForFeePayerFundedByFeePayer(
+        idempotent,
+        solanaAccounts().readTokenProgram(),
+        programDerivedAddress,
+        mint
+    );
+  }
+
+  default Instruction createATAForFeePayerFundedByFeePayer(final boolean idempotent, final PublicKey mint) {
+    return createATAForFeePayerFundedByFeePayer(
+        idempotent,
+        solanaAccounts().readTokenProgram(),
+        mint
+    );
+  }
 
   Instruction initializeStakeAccount(final PublicKey unInitializedStakeAccount,
                                      final PublicKey staker);

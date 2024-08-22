@@ -28,30 +28,30 @@ import static software.sava.solana.programs.compute_budget.ComputeBudgetProgram.
 
 final class NativeProgramAccountClientImpl implements NativeProgramAccountClient {
 
-  private final SolanaAccounts accounts;
+  private final SolanaAccounts solanaAccounts;
   private final NativeProgramClient nativeProgramClient;
   private final PublicKey owner;
   private final AccountMeta feePayer;
   private final ProgramDerivedAddress wrappedSolPDA;
 
-  NativeProgramAccountClientImpl(final SolanaAccounts accounts,
+  NativeProgramAccountClientImpl(final SolanaAccounts solanaAccounts,
                                  final PublicKey owner,
                                  final AccountMeta feePayer) {
-    this.accounts = accounts;
-    this.nativeProgramClient = NativeProgramClient.createClient(accounts);
+    this.solanaAccounts = solanaAccounts;
+    this.nativeProgramClient = NativeProgramClient.createClient(solanaAccounts);
     this.owner = owner;
-    this.wrappedSolPDA = findAssociatedTokenProgramAddress(accounts.wrappedSolTokenMint());
+    this.wrappedSolPDA = findAssociatedTokenProgramAddress(solanaAccounts.wrappedSolTokenMint());
     this.feePayer = feePayer;
   }
 
   NativeProgramAccountClientImpl(final NativeProgramClient nativeProgramClient,
                                  final PublicKey owner,
                                  final AccountMeta feePayer) {
-    this.accounts = nativeProgramClient.accounts();
+    this.solanaAccounts = nativeProgramClient.accounts();
     this.nativeProgramClient = nativeProgramClient;
     this.owner = owner;
     this.feePayer = feePayer;
-    this.wrappedSolPDA = findAssociatedTokenProgramAddress(accounts.wrappedSolTokenMint());
+    this.wrappedSolPDA = findAssociatedTokenProgramAddress(solanaAccounts.wrappedSolTokenMint());
   }
 
   @Override
@@ -66,7 +66,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public SolanaAccounts solanaAccounts() {
-    return accounts;
+    return solanaAccounts;
   }
 
   @Override
@@ -260,7 +260,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public ProgramDerivedAddress findAssociatedTokenProgramAddress(final PublicKey mint) {
-    return AssociatedTokenProgram.findAssociatedTokenProgramAddress(accounts, owner, mint);
+    return AssociatedTokenProgram.findAssociatedTokenProgramAddress(solanaAccounts, owner, mint);
   }
 
   @Override
@@ -270,12 +270,12 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public CompletableFuture<List<AccountInfo<TokenAccount>>> fetchTokenAccounts(final SolanaRpcClient rpcClient) {
-    return rpcClient.getTokenAccountsForProgramByOwner(owner, accounts.tokenProgram());
+    return rpcClient.getTokenAccountsForProgramByOwner(owner, solanaAccounts.tokenProgram());
   }
 
   @Override
   public CompletableFuture<List<AccountInfo<TokenAccount>>> fetchToken2022Accounts(final SolanaRpcClient rpcClient) {
-    return rpcClient.getTokenAccountsForProgramByOwner(owner, accounts.token2022Program());
+    return rpcClient.getTokenAccountsForProgramByOwner(owner, solanaAccounts.token2022Program());
   }
 
   @Override
@@ -301,7 +301,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
                                    final long space,
                                    final PublicKey programOwner) {
     return SystemProgram.createAccount(
-        accounts.invokedSystemProgram(),
+        solanaAccounts.invokedSystemProgram(),
         owner,
         newAccountPublicKey,
         lamports,
@@ -316,7 +316,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
                                            final long space,
                                            final PublicKey programOwner) {
     return SystemProgram.createAccountWithSeed(
-        accounts.invokedSystemProgram(),
+        solanaAccounts.invokedSystemProgram(),
         owner,
         accountWithSeed,
         lamports,
@@ -330,7 +330,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
                                                   final long space,
                                                   final PublicKey programOwner) {
     return SystemProgram.allocateWithSeed(
-        accounts.invokedSystemProgram(),
+        solanaAccounts.invokedSystemProgram(),
         accountWithSeed,
         space,
         programOwner
@@ -344,7 +344,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public AccountWithSeed createOffCurveStakeAccountWithSeed(final String asciiSeed) {
-    return createOffCurveAccountWithSeed(asciiSeed, accounts.stakeProgram());
+    return createOffCurveAccountWithSeed(asciiSeed, solanaAccounts.stakeProgram());
   }
 
   @Override
@@ -370,7 +370,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
         newAccountPublicKey,
         lamports,
         StakeAccount.BYTES,
-        accounts.stakeProgram()
+        solanaAccounts.stakeProgram()
     );
   }
 
@@ -380,7 +380,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
         accountWithSeed,
         lamports,
         StakeAccount.BYTES,
-        accounts.stakeProgram()
+        solanaAccounts.stakeProgram()
     );
   }
 
@@ -389,7 +389,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
     return allocateAccountSpaceWithSeed(
         accountWithSeed,
         StakeAccount.BYTES,
-        accounts.stakeProgram());
+        solanaAccounts.stakeProgram());
   }
 
   @Override
@@ -398,7 +398,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
                                                  final long lamports,
                                                  final PublicKey programOwner) {
     return SystemProgram.transferWithSeed(
-        accounts.invokedSystemProgram(),
+        solanaAccounts.invokedSystemProgram(),
         accountWithSeed,
         recipientAccount,
         lamports,
@@ -409,7 +409,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   @Override
   public Instruction transferSolLamports(final PublicKey toPublicKey, final long lamports) {
     return SystemProgram.transfer(
-        accounts.invokedSystemProgram(),
+        solanaAccounts.invokedSystemProgram(),
         owner,
         toPublicKey,
         lamports
@@ -421,7 +421,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
                                    final PublicKey toTokenAccount,
                                    final long lamports) {
     return TokenProgram.transfer(
-        accounts.invokedTokenProgram(),
+        solanaAccounts.invokedTokenProgram(),
         fromTokenAccount,
         toTokenAccount,
         lamports,
@@ -436,7 +436,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
                                           final int decimals,
                                           final PublicKey tokenMint) {
     return TokenProgram.transferChecked(
-        accounts.invokedTokenProgram(),
+        solanaAccounts.invokedTokenProgram(),
         fromTokenAccount,
         toTokenAccount,
         lamports,
@@ -449,297 +449,13 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   @Override
   public Instruction closeTokenAccount(final PublicKey tokenAccount) {
     return TokenProgram.closeAccount(
-        accounts.invokedTokenProgram(),
+        solanaAccounts.invokedTokenProgram(),
         tokenAccount,
         owner,
         owner
     );
   }
 
-  @Override
-  public Instruction createATAForFundedBy(final boolean idempotent,
-                                          final AccountMeta tokenProgram,
-                                          final PublicKey tokenAccountOwner,
-                                          final PublicKey programDerivedAddress,
-                                          final PublicKey mint,
-                                          final PublicKey fundingAccount) {
-    return AssociatedTokenProgram.createATAForProgram(
-        idempotent,
-        accounts,
-        tokenProgram,
-        fundingAccount,
-        programDerivedAddress,
-        tokenAccountOwner,
-        mint
-    );
-  }
-
-  @Override
-  public Instruction createATAForFundedBy(final boolean idempotent,
-                                          final AccountMeta tokenProgram,
-                                          final PublicKey tokenAccountOwner,
-                                          final PublicKey mint,
-                                          final PublicKey fundingAccount) {
-    return AssociatedTokenProgram.createATAForProgram(
-        idempotent,
-        accounts,
-        tokenProgram,
-        fundingAccount,
-        tokenAccountOwner,
-        mint
-    );
-  }
-
-  @Override
-  public Instruction createATAForFundedByFeePayer(final boolean idempotent,
-                                                  final AccountMeta tokenProgram,
-                                                  final PublicKey tokenAccountOwner,
-                                                  final PublicKey programDerivedAddress,
-                                                  final PublicKey mint) {
-    return createATAForFundedBy(
-        idempotent,
-        tokenProgram,
-        programDerivedAddress,
-        tokenAccountOwner,
-        mint,
-        feePayer.publicKey()
-    );
-  }
-
-  @Override
-  public Instruction createATAForFundedByFeePayer(final boolean idempotent,
-                                                  final AccountMeta tokenProgram,
-                                                  final PublicKey tokenAccountOwner,
-                                                  final PublicKey mint) {
-    return createATAForFundedBy(
-        idempotent,
-        tokenProgram,
-        tokenAccountOwner,
-        mint,
-        feePayer.publicKey()
-    );
-  }
-
-  @Override
-  public Instruction createATAForFundedByOwner(final boolean idempotent,
-                                               final AccountMeta tokenProgram,
-                                               final PublicKey tokenAccountOwner,
-                                               final PublicKey programDerivedAddress,
-                                               final PublicKey mint) {
-    return createATAForFundedBy(
-        idempotent,
-        tokenProgram,
-        programDerivedAddress,
-        tokenAccountOwner,
-        mint,
-        owner
-    );
-  }
-
-  @Override
-  public Instruction createATAForFundedByOwner(final boolean idempotent,
-                                               final AccountMeta tokenProgram,
-                                               final PublicKey tokenAccountOwner,
-                                               final PublicKey mint) {
-    return createATAForFundedBy(
-        idempotent,
-        tokenProgram,
-        tokenAccountOwner,
-        mint,
-        owner
-    );
-  }
-
-  @Override
-  public Instruction createATAForOwnerFundedByOwner(final boolean idempotent,
-                                                    final AccountMeta tokenProgram,
-                                                    final PublicKey programDerivedAddress,
-                                                    final PublicKey mint) {
-    return createATAForFundedByOwner(idempotent, tokenProgram, owner, programDerivedAddress, mint);
-  }
-
-  @Override
-  public Instruction createATAForOwnerFundedByOwner(final boolean idempotent,
-                                                    final AccountMeta tokenProgram,
-                                                    final PublicKey mint) {
-    return createATAForFundedByOwner(idempotent, tokenProgram, owner, mint);
-  }
-
-  @Override
-  public Instruction createATAForOwnerFundedByFeePayer(final boolean idempotent,
-                                                       final AccountMeta tokenProgram,
-                                                       final PublicKey programDerivedAddress,
-                                                       final PublicKey mint) {
-    return createATAForFundedByFeePayer(idempotent, tokenProgram, owner, programDerivedAddress, mint);
-  }
-
-  @Override
-  public Instruction createATAForOwnerFundedByFeePayer(final boolean idempotent,
-                                                       final AccountMeta tokenProgram,
-                                                       final PublicKey mint) {
-    return createATAForFundedByFeePayer(idempotent, tokenProgram, owner, mint);
-  }
-
-  @Override
-  public Instruction createATAForFeePayerFundedByOwner(final boolean idempotent,
-                                                       final AccountMeta tokenProgram,
-                                                       final PublicKey programDerivedAddress,
-                                                       final PublicKey mint) {
-    return createATAForFundedByOwner(idempotent, tokenProgram, feePayer.publicKey(), programDerivedAddress, mint);
-  }
-
-  @Override
-  public Instruction createATAForFeePayerFundedByOwner(final boolean idempotent,
-                                                       final AccountMeta tokenProgram,
-                                                       final PublicKey mint) {
-    return createATAForFundedByOwner(idempotent, tokenProgram, feePayer.publicKey(), mint);
-  }
-
-  @Override
-  public Instruction createATAForFeePayerFundedByFeePayer(final boolean idempotent,
-                                                          final AccountMeta tokenProgram,
-                                                          final PublicKey programDerivedAddress,
-                                                          final PublicKey mint) {
-    return createATAForFundedByFeePayer(idempotent, tokenProgram, feePayer.publicKey(), programDerivedAddress, mint);
-  }
-
-  @Override
-  public Instruction createATAForFeePayerFundedByFeePayer(final boolean idempotent,
-                                                          final AccountMeta tokenProgram,
-                                                          final PublicKey mint) {
-    return createATAForFundedByFeePayer(idempotent, tokenProgram, feePayer.publicKey(), mint);
-  }
-
-
-  @Override
-  public Instruction createATAForFundedBy(final boolean idempotent,
-                                          final PublicKey tokenAccountOwner,
-                                          final PublicKey programDerivedAddress,
-                                          final PublicKey mint,
-                                          final PublicKey fundingAccount) {
-    return AssociatedTokenProgram.createATA(
-        idempotent,
-        accounts,
-        fundingAccount,
-        programDerivedAddress,
-        tokenAccountOwner,
-        mint
-    );
-  }
-
-  @Override
-  public Instruction createATAForFundedBy(final boolean idempotent,
-                                          final PublicKey tokenAccountOwner,
-                                          final PublicKey mint,
-                                          final PublicKey fundingAccount) {
-    return AssociatedTokenProgram.createATA(
-        idempotent,
-        accounts,
-        fundingAccount,
-        tokenAccountOwner,
-        mint
-    );
-  }
-
-  @Override
-  public Instruction createATAForFundedByFeePayer(final boolean idempotent,
-                                                  final PublicKey tokenAccountOwner,
-                                                  final PublicKey programDerivedAddress,
-                                                  final PublicKey mint) {
-    return createATAForFundedBy(
-        idempotent,
-        programDerivedAddress,
-        tokenAccountOwner,
-        mint,
-        feePayer.publicKey()
-    );
-  }
-
-  @Override
-  public Instruction createATAForFundedByFeePayer(final boolean idempotent,
-                                                  final PublicKey tokenAccountOwner,
-                                                  final PublicKey mint) {
-    return createATAForFundedBy(
-        idempotent,
-        tokenAccountOwner,
-        mint,
-        feePayer.publicKey()
-    );
-  }
-
-  @Override
-  public Instruction createATAForFundedByOwner(final boolean idempotent,
-                                               final PublicKey tokenAccountOwner,
-                                               final PublicKey programDerivedAddress,
-                                               final PublicKey mint) {
-    return createATAForFundedBy(
-        idempotent,
-        programDerivedAddress,
-        tokenAccountOwner,
-        mint,
-        owner
-    );
-  }
-
-  @Override
-  public Instruction createATAForFundedByOwner(final boolean idempotent,
-                                               final PublicKey tokenAccountOwner,
-                                               final PublicKey mint) {
-    return createATAForFundedBy(
-        idempotent,
-        tokenAccountOwner,
-        mint,
-        owner
-    );
-  }
-
-  @Override
-  public Instruction createATAForOwnerFundedByOwner(final boolean idempotent,
-                                                    final PublicKey programDerivedAddress,
-                                                    final PublicKey mint) {
-    return createATAForFundedByOwner(idempotent, owner, programDerivedAddress, mint);
-  }
-
-  @Override
-  public Instruction createATAForOwnerFundedByOwner(final boolean idempotent, final PublicKey mint) {
-    return createATAForFundedByOwner(idempotent, owner, mint);
-  }
-
-  @Override
-  public Instruction createATAForOwnerFundedByFeePayer(final boolean idempotent,
-                                                       final PublicKey programDerivedAddress,
-                                                       final PublicKey mint) {
-    return createATAForFundedByFeePayer(idempotent, owner, programDerivedAddress, mint);
-  }
-
-  @Override
-  public Instruction createATAForOwnerFundedByFeePayer(final boolean idempotent, final PublicKey mint) {
-    return createATAForFundedByFeePayer(idempotent, owner, mint);
-  }
-
-  @Override
-  public Instruction createATAForFeePayerFundedByOwner(final boolean idempotent,
-                                                       final PublicKey programDerivedAddress,
-                                                       final PublicKey mint) {
-    return createATAForFundedByOwner(idempotent, feePayer.publicKey(), programDerivedAddress, mint);
-  }
-
-  @Override
-  public Instruction createATAForFeePayerFundedByOwner(final boolean idempotent, final PublicKey mint) {
-    return createATAForFundedByOwner(idempotent, feePayer.publicKey(), mint);
-  }
-
-  @Override
-  public Instruction createATAForFeePayerFundedByFeePayer(final boolean idempotent,
-                                                          final PublicKey programDerivedAddress,
-                                                          final PublicKey mint) {
-    return createATAForFundedByFeePayer(idempotent, feePayer.publicKey(), programDerivedAddress, mint);
-  }
-
-  @Override
-  public Instruction createATAForFeePayerFundedByFeePayer(final boolean idempotent, final PublicKey mint) {
-    return createATAForFundedByFeePayer(idempotent, feePayer.publicKey(), mint);
-  }
 
   @Override
   public Instruction initializeStakeAccount(final PublicKey unInitializedStakeAccount,
@@ -858,13 +574,13 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public ProgramDerivedAddress findLookupTableAddress(final long recentSlot) {
-    return AddressLookupTableProgram.findLookupTableAddress(accounts, owner, recentSlot);
+    return AddressLookupTableProgram.findLookupTableAddress(solanaAccounts, owner, recentSlot);
   }
 
   @Override
   public Instruction createLookupTable(final ProgramDerivedAddress uninitializedTableAccount, final long recentSlot) {
     return AddressLookupTableProgram.createLookupTable(
-        accounts,
+        solanaAccounts,
         uninitializedTableAccount.publicKey(),
         owner,
         owner,
@@ -876,7 +592,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   @Override
   public Instruction freezeLookupTable(final PublicKey tableAccount) {
     return AddressLookupTableProgram.freezeLookupTable(
-        accounts,
+        solanaAccounts,
         tableAccount,
         owner
     );
@@ -885,7 +601,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   @Override
   public Instruction extendLookupTable(final PublicKey tableAccount, final List<PublicKey> newAddresses) {
     return AddressLookupTableProgram.extendLookupTable(
-        accounts,
+        solanaAccounts,
         tableAccount,
         owner,
         owner,
@@ -896,7 +612,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   @Override
   public Instruction deactivateLookupTable(final PublicKey tableAccount) {
     return AddressLookupTableProgram.deactivateLookupTable(
-        accounts,
+        solanaAccounts,
         tableAccount,
         owner
     );
@@ -905,7 +621,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   @Override
   public Instruction closeLookupTable(final PublicKey tableAccount) {
     return AddressLookupTableProgram.closeLookupTable(
-        accounts,
+        solanaAccounts,
         tableAccount,
         owner,
         owner
