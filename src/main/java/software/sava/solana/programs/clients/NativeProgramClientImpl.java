@@ -10,10 +10,7 @@ import software.sava.core.rpc.Filter;
 import software.sava.core.tx.Instruction;
 import software.sava.rpc.json.http.client.SolanaRpcClient;
 import software.sava.rpc.json.http.response.AccountInfo;
-import software.sava.solana.programs.stake.LockUp;
-import software.sava.solana.programs.stake.StakeAccount;
-import software.sava.solana.programs.stake.StakeProgram;
-import software.sava.solana.programs.stake.StakeState;
+import software.sava.solana.programs.stake.*;
 import software.sava.solana.programs.system.SystemProgram;
 import software.sava.solana.programs.token.TokenProgram;
 
@@ -213,7 +210,7 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
                                            final PublicKey stakeOrWithdrawAuthority,
                                            final PublicKey lockupAuthority,
                                            final PublicKey newAuthority,
-                                           final StakeProgram.StakeAuthorize stakeAuthorize) {
+                                           final StakeAuthorize stakeAuthorize) {
     return StakeProgram.authorize(
         accounts,
         stakeAccount,
@@ -229,7 +226,7 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
                                                   final PublicKey stakeOrWithdrawAuthority,
                                                   final PublicKey newStakeOrWithdrawAuthority,
                                                   final PublicKey lockupAuthority,
-                                                  final StakeProgram.StakeAuthorize stakeAuthorize) {
+                                                  final StakeAuthorize stakeAuthorize) {
     return StakeProgram.authorizeChecked(
         accounts,
         stakeAccount,
@@ -245,7 +242,7 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
                                                    final AccountWithSeed baseKeyOrWithdrawAuthority,
                                                    final PublicKey lockupAuthority,
                                                    final PublicKey newAuthorizedPublicKey,
-                                                   final StakeProgram.StakeAuthorize stakeAuthorize,
+                                                   final StakeAuthorize stakeAuthorize,
                                                    final PublicKey authorityOwner) {
     return StakeProgram.authorizeWithSeed(
         accounts,
@@ -263,7 +260,7 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
                                                           final AccountWithSeed baseKeyOrWithdrawAuthority,
                                                           final PublicKey stakeOrWithdrawAuthority,
                                                           final PublicKey lockupAuthority,
-                                                          final StakeProgram.StakeAuthorize stakeAuthorize,
+                                                          final StakeAuthorize stakeAuthorize,
                                                           final PublicKey authorityOwner) {
     return StakeProgram.authorizeCheckedWithSeed(
         accounts,

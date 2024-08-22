@@ -10,7 +10,7 @@ import software.sava.core.tx.Transaction;
 import software.sava.rpc.json.http.client.SolanaRpcClient;
 import software.sava.rpc.json.http.response.AccountInfo;
 import software.sava.solana.programs.stake.StakeAccount;
-import software.sava.solana.programs.stake.StakeProgram;
+import software.sava.solana.programs.stake.StakeAuthorize;
 import software.sava.solana.programs.stake.StakeState;
 
 import java.util.Collection;
@@ -252,18 +252,129 @@ public interface NativeProgramAccountClient {
 
   Instruction closeTokenAccount(final PublicKey tokenAccount);
 
-  Instruction createATAFor(final boolean idempotent,
-                           final PublicKey tokenAccountOwner,
-                           final PublicKey programDerivedAddress,
-                           final PublicKey mint);
+  Instruction createATAForFundedBy(final boolean idempotent,
+                                   final AccountMeta tokenProgram,
+                                   final PublicKey tokenAccountOwner,
+                                   final PublicKey programDerivedAddress,
+                                   final PublicKey mint,
+                                   final PublicKey fundingAccount);
 
-  Instruction createATAFor(final boolean idempotent,
-                           final PublicKey tokenAccountOwner,
-                           final PublicKey mint);
+  Instruction createATAForFundedBy(final boolean idempotent,
+                                   final AccountMeta tokenProgram,
+                                   final  PublicKey tokenAccountOwner,
+                                   final  PublicKey mint,
+                                   final PublicKey fundingAccount);
 
-  Instruction createATA(final boolean idempotent, final PublicKey programDerivedAddress, final PublicKey mint);
+  Instruction createATAForFundedByFeePayer(final boolean idempotent,
+                                           final AccountMeta tokenProgram,
+                                           final PublicKey tokenAccountOwner,
+                                           final PublicKey programDerivedAddress,
+                                           final PublicKey mint);
 
-  Instruction createATA(final boolean idempotent, final PublicKey mint);
+  Instruction createATAForFundedByFeePayer(final boolean idempotent,
+                                           final AccountMeta tokenProgram,
+                                           final PublicKey tokenAccountOwner,
+                                           final PublicKey mint);
+
+  Instruction createATAForFundedByOwner(final boolean idempotent,
+                                        final AccountMeta tokenProgram,
+                                        final PublicKey tokenAccountOwner,
+                                        final PublicKey programDerivedAddress,
+                                        final PublicKey mint);
+
+  Instruction createATAForFundedByOwner(final boolean idempotent,
+                                        final AccountMeta tokenProgram,
+                                        final PublicKey tokenAccountOwner,
+                                        final PublicKey mint);
+
+  Instruction createATAForOwnerFundedByOwner(final boolean idempotent,
+                                             final AccountMeta tokenProgram,
+                                             final PublicKey programDerivedAddress,
+                                             final PublicKey mint);
+
+  Instruction createATAForOwnerFundedByOwner(final boolean idempotent,
+                                             final AccountMeta tokenProgram,
+                                             final PublicKey mint);
+
+  Instruction createATAForOwnerFundedByFeePayer(final boolean idempotent,
+                                                final AccountMeta tokenProgram,
+                                                final PublicKey programDerivedAddress,
+                                                final PublicKey mint);
+
+  Instruction createATAForOwnerFundedByFeePayer(final boolean idempotent,
+                                                final AccountMeta tokenProgram,
+                                                final PublicKey mint);
+
+  Instruction createATAForFeePayerFundedByOwner(final boolean idempotent,
+                                                final AccountMeta tokenProgram,
+                                                final PublicKey programDerivedAddress,
+                                                final PublicKey mint);
+
+  Instruction createATAForFeePayerFundedByOwner(final boolean idempotent,
+                                                final AccountMeta tokenProgram,
+                                                final PublicKey mint);
+
+  Instruction createATAForFeePayerFundedByFeePayer(final boolean idempotent,
+                                                   final AccountMeta tokenProgram,
+                                                   final PublicKey programDerivedAddress,
+                                                   final PublicKey mint);
+
+  Instruction createATAForFeePayerFundedByFeePayer(final boolean idempotent,
+                                                   final AccountMeta tokenProgram,
+                                                   final PublicKey mint);
+
+  Instruction createATAForFundedBy(final boolean idempotent,
+                                   final PublicKey tokenAccountOwner,
+                                   final PublicKey programDerivedAddress,
+                                   final PublicKey mint,
+                                   final PublicKey fundingAccount);
+
+  Instruction createATAForFundedBy(final boolean idempotent,
+                                   final PublicKey tokenAccountOwner,
+                                   final PublicKey mint,
+                                   final PublicKey fundingAccount);
+
+  Instruction createATAForFundedByFeePayer(final boolean idempotent,
+                                           final PublicKey tokenAccountOwner,
+                                           final PublicKey programDerivedAddress,
+                                           final PublicKey mint);
+
+  Instruction createATAForFundedByFeePayer(final boolean idempotent,
+                                           final PublicKey tokenAccountOwner,
+                                           final PublicKey mint);
+
+  Instruction createATAForFundedByOwner(final boolean idempotent,
+                                        final PublicKey tokenAccountOwner,
+                                        final PublicKey programDerivedAddress,
+                                        final PublicKey mint);
+
+  Instruction createATAForFundedByOwner(final boolean idempotent,
+                                        final PublicKey tokenAccountOwner,
+                                        final PublicKey mint);
+
+  Instruction createATAForOwnerFundedByOwner(final boolean idempotent,
+                                             final PublicKey programDerivedAddress,
+                                             final PublicKey mint);
+
+  Instruction createATAForOwnerFundedByOwner(final boolean idempotent, final PublicKey mint);
+
+  Instruction createATAForOwnerFundedByFeePayer(final boolean idempotent,
+                                                final PublicKey programDerivedAddress,
+                                                final PublicKey mint);
+
+  Instruction createATAForOwnerFundedByFeePayer(final boolean idempotent, final PublicKey mint);
+
+  Instruction createATAForFeePayerFundedByOwner(final boolean idempotent,
+                                                final PublicKey programDerivedAddress,
+                                                final PublicKey mint);
+
+  Instruction createATAForFeePayerFundedByOwner(final boolean idempotent, final PublicKey mint);
+
+  Instruction createATAForFeePayerFundedByFeePayer(final boolean idempotent,
+                                                   final PublicKey programDerivedAddress,
+                                                   final PublicKey mint);
+
+  Instruction createATAForFeePayerFundedByFeePayer(final boolean idempotent, PublicKey mint);
 
   Instruction initializeStakeAccount(final PublicKey unInitializedStakeAccount,
                                      final PublicKey staker);
@@ -278,17 +389,17 @@ public interface NativeProgramAccountClient {
   Instruction authorizeStakeAccount(final PublicKey stakeAccount,
                                     final PublicKey stakeOrWithdrawAuthority,
                                     final PublicKey lockupAuthority,
-                                    final StakeProgram.StakeAuthorize stakeAuthorize);
+                                    final StakeAuthorize stakeAuthorize);
 
   Instruction authorizeStakeAccount(final PublicKey stakeAccount,
                                     final PublicKey stakeOrWithdrawAuthority,
-                                    final StakeProgram.StakeAuthorize stakeAuthorize);
+                                    final StakeAuthorize stakeAuthorize);
 
   default Instruction authorizeStakeAccount(final StakeAccount stakeAccount,
-                                            final StakeProgram.StakeAuthorize stakeAuthorize) {
+                                            final StakeAuthorize stakeAuthorize) {
     return authorizeStakeAccount(
         stakeAccount.address(),
-        stakeAuthorize == StakeProgram.StakeAuthorize.Staker
+        stakeAuthorize == StakeAuthorize.Staker
             ? stakeAccount.stakeAuthority()
             : stakeAccount.withdrawAuthority(),
         stakeAuthorize
@@ -298,17 +409,17 @@ public interface NativeProgramAccountClient {
   Instruction authorizeStakeAccountChecked(final PublicKey stakeAccount,
                                            final PublicKey stakeOrWithdrawAuthority,
                                            final PublicKey newStakeOrWithdrawAuthority,
-                                           final StakeProgram.StakeAuthorize stakeAuthorize);
+                                           final StakeAuthorize stakeAuthorize);
 
   Instruction authorizeStakeAccountChecked(final PublicKey stakeAccount,
                                            final PublicKey stakeOrWithdrawAuthority,
-                                           final StakeProgram.StakeAuthorize stakeAuthorize);
+                                           final StakeAuthorize stakeAuthorize);
 
   default Instruction authorizeStakeAccountChecked(final StakeAccount stakeAccount,
-                                                   final StakeProgram.StakeAuthorize stakeAuthorize) {
+                                                   final StakeAuthorize stakeAuthorize) {
     return authorizeStakeAccountChecked(
         stakeAccount.address(),
-        stakeAuthorize == StakeProgram.StakeAuthorize.Staker
+        stakeAuthorize == StakeAuthorize.Staker
             ? stakeAccount.stakeAuthority()
             : stakeAccount.withdrawAuthority(),
         stakeAuthorize
@@ -317,7 +428,7 @@ public interface NativeProgramAccountClient {
 
   Instruction deactivateStakeAccount(final StakeAccount delegatedStakeAccount);
 
-  Instruction deactivateStakeAccount(PublicKey delegatedStakeAccount);
+  Instruction deactivateStakeAccount(final PublicKey delegatedStakeAccount);
 
   List<Instruction> deactivateStakeAccountInfos(final Collection<AccountInfo<StakeAccount>> delegatedStakeAccounts);
 

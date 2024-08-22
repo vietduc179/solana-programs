@@ -6,6 +6,7 @@ import software.sava.core.accounts.SolanaAccounts;
 import software.sava.core.accounts.meta.AccountMeta;
 import software.sava.core.borsh.Borsh;
 import software.sava.core.encoding.ByteUtil;
+import software.sava.core.programs.Discriminator;
 import software.sava.core.tx.Instruction;
 
 import java.time.Instant;
@@ -19,27 +20,7 @@ import static software.sava.core.programs.Discriminator.serializeDiscriminator;
 
 public final class StakeProgram {
 
-  public enum StakeAuthorize implements Borsh {
-    Staker,
-    Withdrawer;
-
-    @Override
-    public int l() {
-      return Integer.BYTES;
-    }
-
-    @Override
-    public int write(final byte[] data, final int offset) {
-      ByteUtil.putInt32LE(data, offset, ordinal());
-      return l();
-    }
-
-    public static StakeAuthorize read(final byte[] _data, final int offset) {
-      return Borsh.read(StakeAuthorize.values(), _data, offset);
-    }
-  }
-
-  public enum StakeInstruction {
+  private enum Instructions implements Discriminator {
     /// Initialize a stake with lockup and authorization information
     ///
     /// # Account references
@@ -270,14 +251,24 @@ public final class StakeProgram {
     ///   3. `[]` Address of config account that carries stake config
     ///   4. `[SIGNER]` Stake authority
     ///
-    Redelegate,
+    Redelegate;
+
+    private final byte[] data;
+
+    Instructions() {
+      this.data = serializeDiscriminator(this);
+    }
+
+    public byte[] data() {
+      return this.data;
+    }
   }
 
   public static Instruction withdraw(final SolanaAccounts solanaAccounts,
                                      final List<AccountMeta> keys,
                                      final long lamports) {
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + Long.BYTES];
-    serializeDiscriminator(data, StakeInstruction.Withdraw);
+    Instructions.Withdraw.write(data);
     ByteUtil.putInt64LE(data, NATIVE_DISCRIMINATOR_LENGTH, lamports);
 
     return Instruction.createInstruction(solanaAccounts.invokedStakeProgram(), keys, data);
@@ -331,7 +322,7 @@ public final class StakeProgram {
 
 
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + Long.BYTES];
-    serializeDiscriminator(data, StakeInstruction.Split);
+    Instructions.Split.write(data);
     ByteUtil.putInt64LE(data, NATIVE_DISCRIMINATOR_LENGTH, lamports);
 
     return Instruction.createInstruction(solanaAccounts.invokedStakeProgram(), keys, data);
@@ -349,9 +340,7 @@ public final class StakeProgram {
         createReadOnlySigner(stakeAuthority)
     );
 
-    final byte[] data = serializeDiscriminator(StakeInstruction.Merge);
-
-    return Instruction.createInstruction(solanaAccounts.invokedStakeProgram(), keys, data);
+    return Instruction.createInstruction(solanaAccounts.invokedStakeProgram(), keys, Instructions.Merge.data);
   }
 
   public static Instruction initialize(final SolanaAccounts solanaAccounts,
@@ -372,9 +361,9 @@ public final class StakeProgram {
     );
 
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + PUBLIC_KEY_LENGTH + PUBLIC_KEY_LENGTH + LockUp.BYTES];
-    serializeDiscriminator(data, StakeInstruction.Initialize);
-    staker.write(data, PUBLIC_KEY_LENGTH);
-    int i = NATIVE_DISCRIMINATOR_LENGTH + PUBLIC_KEY_LENGTH;
+    int i = Instructions.Initialize.write(data);
+    staker.write(data, i);
+    i += PUBLIC_KEY_LENGTH;
     i += withdrawer.write(data, i);
     lockUp.write(data, i);
 
@@ -392,9 +381,7 @@ public final class StakeProgram {
         createReadOnlySigner(withdrawer)
     );
 
-    final byte[] data = serializeDiscriminator(StakeInstruction.InitializeChecked);
-
-    return Instruction.createInstruction(solanaAccounts.invokedStakeProgram(), keys, data);
+    return Instruction.createInstruction(solanaAccounts.invokedStakeProgram(), keys, Instructions.InitializeChecked.data);
   }
 
   public static Instruction authorize(final SolanaAccounts solanaAccounts,
@@ -402,7 +389,7 @@ public final class StakeProgram {
                                       final PublicKey newAuthority,
                                       final StakeAuthorize stakeAuthorize) {
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + PUBLIC_KEY_LENGTH + stakeAuthorize.l()];
-    serializeDiscriminator(data, StakeInstruction.Authorize);
+    Instructions.Authorize.write(data);
     newAuthority.write(data, NATIVE_DISCRIMINATOR_LENGTH);
     stakeAuthorize.write(data, NATIVE_DISCRIMINATOR_LENGTH + PUBLIC_KEY_LENGTH);
     return Instruction.createInstruction(solanaAccounts.invokedStakeProgram(), keys, data);
@@ -446,7 +433,7 @@ public final class StakeProgram {
                                              final List<AccountMeta> keys,
                                              final StakeAuthorize stakeAuthorize) {
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + stakeAuthorize.l()];
-    serializeDiscriminator(data, StakeInstruction.AuthorizeChecked);
+    Instructions.AuthorizeChecked.write(data);
     stakeAuthorize.write(data, NATIVE_DISCRIMINATOR_LENGTH);
     return Instruction.createInstruction(solanaAccounts.invokedStakeProgram(), keys, data);
   }
@@ -499,8 +486,7 @@ public final class StakeProgram {
         + stakeAuthorize.l()
         + Borsh.len(authoritySeedBytes)
         + PUBLIC_KEY_LENGTH];
-    serializeDiscriminator(data, StakeInstruction.AuthorizeWithSeed);
-    int i = NATIVE_DISCRIMINATOR_LENGTH;
+    int i = Instructions.AuthorizeWithSeed.write(data);
     i += newAuthorizedPublicKey.write(data, i);
     i += stakeAuthorize.write(data, i);
     i += Borsh.write(authoritySeedBytes, data, i);
@@ -554,8 +540,8 @@ public final class StakeProgram {
         + stakeAuthorize.l()
         + Borsh.len(authoritySeedBytes)
         + PUBLIC_KEY_LENGTH];
-    serializeDiscriminator(data, StakeInstruction.AuthorizeCheckedWithSeed);
-    int i = NATIVE_DISCRIMINATOR_LENGTH;
+
+    int i = Instructions.AuthorizeCheckedWithSeed.write(data);
     i += stakeAuthorize.write(data, i);
     i += Borsh.write(authoritySeedBytes, data, i);
     authorityOwner.write(data, i);
@@ -615,8 +601,8 @@ public final class StakeProgram {
         + (timestamp == null ? 1 : 1 + Long.BYTES)
         + (epoch.isEmpty() ? 1 : 1 + Long.BYTES)
         + (custodian == null ? 1 : 1 + PUBLIC_KEY_LENGTH)];
-    serializeDiscriminator(data, StakeInstruction.SetLockup);
-    int i = NATIVE_DISCRIMINATOR_LENGTH;
+
+    int i = Instructions.SetLockup.write(data);
     i += Borsh.writeOptional(timestamp, data, i);
     i += Borsh.writeOptional(epoch, data, i);
     Borsh.writeOptional(custodian, data, i);
@@ -631,8 +617,8 @@ public final class StakeProgram {
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH
         + (timestamp == null ? 1 : 1 + Long.BYTES)
         + (epoch.isEmpty() ? 1 : 1 + Long.BYTES)];
-    serializeDiscriminator(data, StakeInstruction.SetLockupChecked);
-    int i = NATIVE_DISCRIMINATOR_LENGTH;
+
+    int i = Instructions.SetLockupChecked.write(data);
     i += Borsh.writeOptional(timestamp, data, i);
     Borsh.writeOptional(epoch, data, i);
 
@@ -683,7 +669,7 @@ public final class StakeProgram {
     return Instruction.createInstruction(
         solanaAccounts.invokedStakeProgram(),
         keys,
-        serializeDiscriminator(StakeInstruction.DeactivateDelinquent)
+        Instructions.DeactivateDelinquent.data
     );
   }
 
@@ -698,7 +684,7 @@ public final class StakeProgram {
     return Instruction.createInstruction(
         solanaAccounts.invokedStakeProgram(),
         keys,
-        serializeDiscriminator(StakeInstruction.Deactivate)
+        Instructions.Deactivate.data
     );
   }
 
@@ -717,7 +703,7 @@ public final class StakeProgram {
     return Instruction.createInstruction(
         solanaAccounts.invokedStakeProgram(),
         keys,
-        serializeDiscriminator(StakeInstruction.DelegateStake)
+        Instructions.DelegateStake.data
     );
   }
 
@@ -736,7 +722,7 @@ public final class StakeProgram {
     return Instruction.createInstruction(
         solanaAccounts.invokedStakeProgram(),
         keys,
-        serializeDiscriminator(StakeInstruction.Redelegate)
+        Instructions.Redelegate.data
     );
   }
 

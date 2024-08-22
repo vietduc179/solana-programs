@@ -3,6 +3,7 @@ package software.sava.solana.programs.system;
 import software.sava.core.accounts.AccountWithSeed;
 import software.sava.core.accounts.PublicKey;
 import software.sava.core.accounts.meta.AccountMeta;
+import software.sava.core.programs.Discriminator;
 import software.sava.core.tx.Instruction;
 
 import java.util.List;
@@ -17,13 +18,7 @@ import static software.sava.core.tx.Instruction.createInstruction;
 // https://github.com/solana-labs/solana/blob/master/sdk/program/src/system_instruction.rs
 public final class SystemProgram {
 
-  private static int writeBytes(final byte[] utf8, final byte[] data, final int offset) {
-    putInt64LE(data, offset, utf8.length);
-    System.arraycopy(utf8, 0, data, offset + Long.BYTES, utf8.length);
-    return offset + Long.BYTES + utf8.length;
-  }
-
-  private enum SystemInstruction {
+  private enum Instructions implements Discriminator {
     /// Create a new account
     ///
     /// # Account references
@@ -198,7 +193,23 @@ public final class SystemProgram {
     ///
     /// # Account references
     ///   0. `[WRITE]` Nonce account
-    UpgradeNonceAccount,
+    UpgradeNonceAccount;
+
+    private final byte[] data;
+
+    Instructions() {
+      this.data = serializeDiscriminator(this);
+    }
+
+    public byte[] data() {
+      return this.data;
+    }
+  }
+
+  private static int writeBytes(final byte[] utf8, final byte[] data, final int offset) {
+    putInt64LE(data, offset, utf8.length);
+    System.arraycopy(utf8, 0, data, offset + Long.BYTES, utf8.length);
+    return Long.BYTES + utf8.length;
   }
 
   public static Instruction allocate(final AccountMeta invokedProgram,
@@ -207,7 +218,7 @@ public final class SystemProgram {
     final var keys = List.of(createWritableSigner(newAccount));
 
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + Long.BYTES];
-    serializeDiscriminator(data, SystemInstruction.Allocate);
+    Instructions.Allocate.write(data);
     putInt64LE(data, 4, space);
 
     return createInstruction(invokedProgram, keys, data);
@@ -225,10 +236,9 @@ public final class SystemProgram {
 
     final byte[] seedBytes = accountWithSeed.asciiSeed();
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + PUBLIC_KEY_LENGTH + (Long.BYTES + seedBytes.length) + Long.BYTES + PUBLIC_KEY_LENGTH];
-    serializeDiscriminator(data, SystemInstruction.AllocateWithSeed);
-    int i = Integer.BYTES;
+    int i = Instructions.AllocateWithSeed.write(data);
     i += baseAccount.write(data, i);
-    i = writeBytes(seedBytes, data, i);
+    i += writeBytes(seedBytes, data, i);
     putInt64LE(data, i, space);
     i += Long.BYTES;
     programOwner.write(data, i);
@@ -242,7 +252,7 @@ public final class SystemProgram {
     final var keys = List.of(createWritableSigner(newAccount));
 
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + PUBLIC_KEY_LENGTH];
-    serializeDiscriminator(data, SystemInstruction.Assign);
+    Instructions.Assign.write(data);
     programOwner.write(data, Integer.BYTES);
 
     return createInstruction(invokedProgram, keys, data);
@@ -256,10 +266,9 @@ public final class SystemProgram {
 
     final byte[] seedBytes = accountWithSeed.asciiSeed();
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + PUBLIC_KEY_LENGTH + (Long.BYTES + seedBytes.length) + PUBLIC_KEY_LENGTH];
-    serializeDiscriminator(data, SystemInstruction.AssignWithSeed);
-    int i = Integer.BYTES;
+    int i = Instructions.AssignWithSeed.write(data);
     i += baseAccount.write(data, i);
-    i = writeBytes(seedBytes, data, i);
+    i += writeBytes(seedBytes, data, i);
     programOwner.write(data, i);
 
     return createInstruction(invokedProgram, keys, data);
@@ -274,10 +283,12 @@ public final class SystemProgram {
     final var keys = List.of(createWritableSigner(fromPublicKey), createWritableSigner(newAccountPublicKey));
 
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + Long.BYTES + Long.BYTES + PUBLIC_KEY_LENGTH];
-    serializeDiscriminator(data, SystemInstruction.CreateAccount);
-    putInt64LE(data, 4, lamports);
-    putInt64LE(data, 12, space);
-    programOwner.write(data, 20);
+    int i = Instructions.CreateAccount.write(data);
+    putInt64LE(data, i, lamports);
+    i += Long.BYTES;
+    putInt64LE(data, i, space);
+    i += Long.BYTES;
+    programOwner.write(data, i);
 
     return createInstruction(invokedProgram, keys, data);
   }
@@ -297,10 +308,10 @@ public final class SystemProgram {
         : List.of(fromSigner, accountMeta, createReadOnlySigner(baseAccount));
 
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + PUBLIC_KEY_LENGTH + (Long.BYTES + seedBytes.length) + Long.BYTES + Long.BYTES + PUBLIC_KEY_LENGTH];
-    serializeDiscriminator(data, SystemInstruction.CreateAccountWithSeed);
-
-    baseAccount.write(data, Integer.BYTES);
-    int i = writeBytes(seedBytes, data, Integer.BYTES + PUBLIC_KEY_LENGTH);
+    int i = Instructions.CreateAccountWithSeed.write(data);
+    baseAccount.write(data, i);
+    i += PUBLIC_KEY_LENGTH;
+    i += writeBytes(seedBytes, data, i);
     putInt64LE(data, i, lamports);
     i += Long.BYTES;
     putInt64LE(data, i, space);
@@ -320,7 +331,7 @@ public final class SystemProgram {
     );
 
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + Long.BYTES];
-    serializeDiscriminator(data, SystemInstruction.Transfer);
+    Instructions.Transfer.write(data);
     putInt64LE(data, 4, lamports);
 
     return createInstruction(invokedProgram, keys, data);
@@ -339,11 +350,10 @@ public final class SystemProgram {
 
     final byte[] seedBytes = accountWithSeed.asciiSeed();
     final byte[] data = new byte[Integer.BYTES + Long.BYTES + (Long.BYTES + seedBytes.length) + PUBLIC_KEY_LENGTH];
-    serializeDiscriminator(data, SystemInstruction.TransferWithSeed);
-    int i = Integer.BYTES;
+    int i = Instructions.TransferWithSeed.write(data);
     putInt64LE(data, i, lamports);
     i += Long.BYTES;
-    i = writeBytes(seedBytes, data, i);
+    i += writeBytes(seedBytes, data, i);
     programOwner.write(data, i);
 
     return createInstruction(invokedProgram, keys, data);

@@ -4,6 +4,7 @@ import software.sava.core.accounts.ProgramDerivedAddress;
 import software.sava.core.accounts.PublicKey;
 import software.sava.core.accounts.SolanaAccounts;
 import software.sava.core.accounts.meta.AccountMeta;
+import software.sava.core.programs.Discriminator;
 import software.sava.core.tx.Instruction;
 
 import java.util.List;
@@ -16,15 +17,9 @@ import static software.sava.core.encoding.ByteUtil.putInt64LE;
 // https://github.com/igneous-labs/sanctum-spl-stake-pool/blob/sanctum-spl-pool-deploy/stake-pool/program/src/instruction.rs#L53
 public final class StakePoolProgram {
 
-  private static byte[] createByteDiscriminator(final Enum<?> ixEnum) {
-    return new byte[]{(byte) ixEnum.ordinal()};
-  }
 
-  private static void setByteDiscriminator(final byte[] data, final Enum<?> ixEnum) {
-    data[0] = (byte) ixEnum.ordinal();
-  }
+  private enum Instructions implements Discriminator {
 
-  private enum StakePoolInstruction {
     ///   Initializes a new StakePool.
     ///
     ///   0. `[w]` New StakePool to create.
@@ -705,7 +700,29 @@ public final class StakePoolProgram {
 //      pool_tokens_in: u64,
 //      /// Minimum amount of lamports that must be received
 //      minimum_lamports_out: u64,
-    },
+    };
+
+    private final byte[] data;
+
+    Instructions() {
+      this.data = new byte[]{(byte) this.ordinal()};
+    }
+
+    @Override
+    public byte[] data() {
+      return data;
+    }
+
+    @Override
+    public int write(final byte[] bytes, final int i) {
+      bytes[i] = (byte) this.ordinal();
+      return 1;
+    }
+
+    @Override
+    public int length() {
+      return 1;
+    }
   }
 
   public static ProgramDerivedAddress findStakePoolWithdrawAuthority(final PublicKey stakePool,
@@ -770,7 +787,7 @@ public final class StakePoolProgram {
     );
 
     final byte[] data = new byte[1 + Long.BYTES + Long.BYTES];
-    setByteDiscriminator(data, StakePoolInstruction.DepositSolWithSlippage);
+    Instructions.DepositSolWithSlippage.write(data);
     putInt64LE(data, 1, lamportsIn);
     putInt64LE(data, 1 + Long.BYTES, minimumPoolTokensOut);
 
@@ -802,7 +819,7 @@ public final class StakePoolProgram {
     );
 
     final byte[] data = new byte[1 + Long.BYTES];
-    setByteDiscriminator(data, StakePoolInstruction.DepositSol);
+    Instructions.DepositSol.write(data);
     putInt64LE(data, 1, lamportsIn);
 
     return Instruction.createInstruction(invokedStakePoolProgram, keys, data);
@@ -875,7 +892,7 @@ public final class StakePoolProgram {
     );
 
     final byte[] data = new byte[1 + Long.BYTES];
-    setByteDiscriminator(data, StakePoolInstruction.DepositStakeWithSlippage);
+    Instructions.DepositStakeWithSlippage.write(data);
     putInt64LE(data, 1, minimumPoolTokensOut);
 
     return Instruction.createInstruction(invokedStakePoolProgram, keys, data);
@@ -910,9 +927,7 @@ public final class StakePoolProgram {
         stakePoolTokenProgramId
     );
 
-    final byte[] data = createByteDiscriminator(StakePoolInstruction.DepositStake);
-
-    return Instruction.createInstruction(invokedStakePoolProgram, keys, data);
+    return Instruction.createInstruction(invokedStakePoolProgram, keys, Instructions.DepositStake.data);
   }
 
   private static List<AccountMeta> createWithdrawSolKeys(final SolanaAccounts solanaAccounts,
@@ -971,7 +986,7 @@ public final class StakePoolProgram {
     );
 
     final byte[] data = new byte[1 + Long.BYTES + Long.BYTES];
-    setByteDiscriminator(data, StakePoolInstruction.WithdrawSolWithSlippage);
+    Instructions.WithdrawSolWithSlippage.write(data);
     putInt64LE(data, 1, poolTokenAmount);
     putInt64LE(data, 1 + Long.BYTES, lamportsOut);
 
@@ -1003,7 +1018,7 @@ public final class StakePoolProgram {
     );
 
     final byte[] data = new byte[1 + Long.BYTES];
-    setByteDiscriminator(data, StakePoolInstruction.WithdrawSol);
+    Instructions.WithdrawSol.write(data);
     putInt64LE(data, 1, poolTokenAmount);
 
     return Instruction.createInstruction(invokedStakePoolProgram, keys, data);
@@ -1071,7 +1086,7 @@ public final class StakePoolProgram {
         stakePoolTokenProgramId);
 
     final byte[] data = new byte[1 + Long.BYTES + Long.BYTES];
-    setByteDiscriminator(data, StakePoolInstruction.WithdrawStakeWithSlippage);
+    Instructions.WithdrawStakeWithSlippage.write(data);
     putInt64LE(data, 1, poolTokenAmount);
     putInt64LE(data, 1 + Long.BYTES, lamportsOut);
 
@@ -1106,7 +1121,7 @@ public final class StakePoolProgram {
         stakePoolTokenProgramId);
 
     final byte[] data = new byte[1 + Long.BYTES];
-    setByteDiscriminator(data, StakePoolInstruction.WithdrawStake);
+    Instructions.WithdrawStake.write(data);
     putInt64LE(data, 1, poolTokenAmount);
 
     return Instruction.createInstruction(invokedStakePoolProgram, keys, data);
@@ -1133,9 +1148,7 @@ public final class StakePoolProgram {
         createRead(stakePoolTokenProgramId)
     );
 
-    final byte[] data = createByteDiscriminator(StakePoolInstruction.UpdateStakePoolBalance);
-
-    return Instruction.createInstruction(invokedStakePoolProgram, keys, data);
+    return Instruction.createInstruction(invokedStakePoolProgram, keys, Instructions.UpdateStakePoolBalance.data);
   }
 
   private StakePoolProgram() {

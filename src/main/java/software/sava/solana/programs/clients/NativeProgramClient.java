@@ -11,7 +11,7 @@ import software.sava.rpc.json.http.client.SolanaRpcClient;
 import software.sava.rpc.json.http.response.AccountInfo;
 import software.sava.solana.programs.stake.LockUp;
 import software.sava.solana.programs.stake.StakeAccount;
-import software.sava.solana.programs.stake.StakeProgram;
+import software.sava.solana.programs.stake.StakeAuthorize;
 import software.sava.solana.programs.stake.StakeState;
 
 import java.time.Instant;
@@ -148,12 +148,12 @@ public interface NativeProgramClient {
                                     final PublicKey stakeOrWithdrawAuthority,
                                     final PublicKey lockupAuthority,
                                     final PublicKey newAuthority,
-                                    final StakeProgram.StakeAuthorize stakeAuthorize);
+                                    final StakeAuthorize stakeAuthorize);
 
   default Instruction authorizeStakeAccount(final PublicKey stakeAccount,
                                             final PublicKey stakeOrWithdrawAuthority,
                                             final PublicKey newAuthority,
-                                            final StakeProgram.StakeAuthorize stakeAuthorize) {
+                                            final StakeAuthorize stakeAuthorize) {
     return authorizeStakeAccount(
         stakeAccount,
         stakeOrWithdrawAuthority,
@@ -165,10 +165,10 @@ public interface NativeProgramClient {
 
   default Instruction authorizeStakeAccount(final StakeAccount stakeAccount,
                                             final PublicKey newAuthority,
-                                            final StakeProgram.StakeAuthorize stakeAuthorize) {
+                                            final StakeAuthorize stakeAuthorize) {
     return authorizeStakeAccount(
         stakeAccount.address(),
-        stakeAuthorize == StakeProgram.StakeAuthorize.Staker
+        stakeAuthorize == StakeAuthorize.Staker
             ? stakeAccount.stakeAuthority()
             : stakeAccount.withdrawAuthority(),
         newAuthority,
@@ -180,12 +180,12 @@ public interface NativeProgramClient {
                                            final PublicKey stakeOrWithdrawAuthority,
                                            final PublicKey newStakeOrWithdrawAuthority,
                                            final PublicKey lockupAuthority,
-                                           final StakeProgram.StakeAuthorize stakeAuthorize);
+                                           final StakeAuthorize stakeAuthorize);
 
   default Instruction authorizeStakeAccountChecked(final PublicKey stakeAccount,
                                                    final PublicKey stakeOrWithdrawAuthority,
                                                    final PublicKey newStakeOrWithdrawAuthority,
-                                                   final StakeProgram.StakeAuthorize stakeAuthorize) {
+                                                   final StakeAuthorize stakeAuthorize) {
     return authorizeStakeAccountChecked(
         stakeAccount,
         stakeOrWithdrawAuthority,
@@ -197,10 +197,10 @@ public interface NativeProgramClient {
 
   default Instruction authorizeStakeAccountChecked(final StakeAccount stakeAccount,
                                                    final PublicKey newAuthority,
-                                                   final StakeProgram.StakeAuthorize stakeAuthorize) {
+                                                   final StakeAuthorize stakeAuthorize) {
     return authorizeStakeAccountChecked(
         stakeAccount.address(),
-        stakeAuthorize == StakeProgram.StakeAuthorize.Staker
+        stakeAuthorize == StakeAuthorize.Staker
             ? stakeAccount.stakeAuthority()
             : stakeAccount.withdrawAuthority(),
         newAuthority,
@@ -212,13 +212,13 @@ public interface NativeProgramClient {
                                             final AccountWithSeed baseKeyOrWithdrawAuthority,
                                             final PublicKey lockupAuthority,
                                             final PublicKey newAuthorizedPublicKey,
-                                            final StakeProgram.StakeAuthorize stakeAuthorize,
+                                            final StakeAuthorize stakeAuthorize,
                                             final PublicKey authorityOwner);
 
   default Instruction authorizeStakeAccountWithSeed(final PublicKey stakeAccount,
                                                     final AccountWithSeed baseKeyOrWithdrawAuthority,
                                                     final PublicKey newAuthorizedPublicKey,
-                                                    final StakeProgram.StakeAuthorize stakeAuthorize,
+                                                    final StakeAuthorize stakeAuthorize,
                                                     final PublicKey authorityOwner) {
     return authorizeStakeAccountWithSeed(
         stakeAccount,
@@ -234,7 +234,7 @@ public interface NativeProgramClient {
                                                    final AccountWithSeed baseKeyOrWithdrawAuthority,
                                                    final PublicKey stakeOrWithdrawAuthority,
                                                    final PublicKey lockupAuthority,
-                                                   final StakeProgram.StakeAuthorize stakeAuthorize,
+                                                   final StakeAuthorize stakeAuthorize,
                                                    final PublicKey authorityOwner);
 
   Instruction initializeStakeAccount(final PublicKey unInitializedStakeAccount,
@@ -350,11 +350,11 @@ public interface NativeProgramClient {
     return deactivateStakeAccount(delegatedStakeAccount.address(), delegatedStakeAccount.stakeAuthority());
   }
 
-  default List<Instruction> deactivateStakeAccountInfos(Collection<AccountInfo<StakeAccount>> delegatedStakeAccounts) {
+  default List<Instruction> deactivateStakeAccountInfos(final Collection<AccountInfo<StakeAccount>> delegatedStakeAccounts) {
     return delegatedStakeAccounts.stream().map(AccountInfo::data).map(this::deactivateStakeAccount).toList();
   }
 
-  default List<Instruction> deactivateStakeAccounts(Collection<StakeAccount> delegatedStakeAccounts) {
+  default List<Instruction> deactivateStakeAccounts(final Collection<StakeAccount> delegatedStakeAccounts) {
     return delegatedStakeAccounts.stream().map(this::deactivateStakeAccount).toList();
   }
 }

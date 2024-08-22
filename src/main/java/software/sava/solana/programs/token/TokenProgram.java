@@ -16,6 +16,7 @@ import static software.sava.core.tx.Instruction.createInstruction;
 public final class TokenProgram {
 
   private enum TokenInstruction {
+
     /// Initializes a new mint and optionally deposits all the newly minted
     /// tokens in an account.
     ///
@@ -483,7 +484,6 @@ public final class TokenProgram {
                                             final int decimals,
                                             final PublicKey owner,
                                             final PublicKey tokenMint) {
-    // index 1 = token mint (https://docs.rs/spl-token/3.1.0/spl_token/instruction/enum.TokenInstruction.html#variant.TransferChecked)
     final var keys = List.of(
         createWrite(source),
         createRead(tokenMint),
