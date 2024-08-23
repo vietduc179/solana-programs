@@ -66,8 +66,8 @@ public final class AssociatedTokenProgram {
   }
 
   public static ProgramDerivedAddress findATA(final SolanaAccounts solanaAccounts,
-                                              final PublicKey tokenProgram,
                                               final PublicKey owner,
+                                              final PublicKey tokenProgram,
                                               final PublicKey mint) {
     return PublicKey.findProgramAddress(List.of(
         owner.toByteArray(),
@@ -79,25 +79,25 @@ public final class AssociatedTokenProgram {
   public static ProgramDerivedAddress findATA(final SolanaAccounts solanaAccounts,
                                               final PublicKey owner,
                                               final PublicKey mint) {
-    return findATA(solanaAccounts, solanaAccounts.tokenProgram(), owner, mint);
+    return findATA(solanaAccounts, owner, solanaAccounts.tokenProgram(), mint);
   }
 
   public static ProgramDerivedAddress findATA2022(final SolanaAccounts solanaAccounts,
                                                   final PublicKey owner,
                                                   final PublicKey mint) {
-    return findATA(solanaAccounts, solanaAccounts.token2022Program(), owner, mint);
+    return findATA(solanaAccounts, owner, solanaAccounts.token2022Program(), mint);
   }
 
   public static Instruction createATAForProgram(final boolean idempotent,
                                                 final SolanaAccounts solanaAccounts,
-                                                final AccountMeta tokenProgram,
                                                 final PublicKey fundingAccount,
-                                                final PublicKey programDerivedAddress,
+                                                final PublicKey pda,
                                                 final PublicKey owner,
-                                                final PublicKey mint) {
+                                                final PublicKey mint,
+                                                final AccountMeta tokenProgram) {
     final var keys = List.of(
         createWritableSigner(fundingAccount),
-        createWrite(programDerivedAddress),
+        createWrite(pda),
         createRead(owner),
         createRead(mint),
         solanaAccounts.readSystemProgram(),
@@ -114,70 +114,70 @@ public final class AssociatedTokenProgram {
 
   public static Instruction createATAForProgram(final boolean idempotent,
                                                 final SolanaAccounts solanaAccounts,
-                                                final PublicKey tokenProgram,
                                                 final PublicKey fundingAccount,
-                                                final PublicKey programDerivedAddress,
+                                                final PublicKey pda,
                                                 final PublicKey owner,
-                                                final PublicKey mint) {
+                                                final PublicKey mint,
+                                                final PublicKey tokenProgram) {
     return createATAForProgram(
         idempotent,
         solanaAccounts,
-        createRead(tokenProgram),
         fundingAccount,
-        programDerivedAddress,
+        pda,
         owner,
-        mint
+        mint,
+        createRead(tokenProgram)
     );
   }
 
   public static Instruction createATAForProgram(final boolean idempotent,
                                                 final SolanaAccounts solanaAccounts,
-                                                final AccountMeta tokenProgram,
                                                 final PublicKey fundingAccount,
                                                 final PublicKey owner,
-                                                final PublicKey mint) {
-    final var pda = findATA(solanaAccounts, tokenProgram.publicKey(), owner, mint);
-    return createATAForProgram(idempotent, solanaAccounts, tokenProgram, fundingAccount, pda.publicKey(), owner, mint);
+                                                final PublicKey mint,
+                                                final AccountMeta tokenProgram) {
+    final var pda = findATA(solanaAccounts, owner, tokenProgram.publicKey(), mint);
+    return createATAForProgram(idempotent, solanaAccounts, fundingAccount, pda.publicKey(), owner, mint, tokenProgram);
   }
 
   public static Instruction createATAForProgram(final boolean idempotent,
                                                 final SolanaAccounts solanaAccounts,
-                                                final PublicKey tokenProgram,
                                                 final PublicKey fundingAccount,
                                                 final PublicKey owner,
-                                                final PublicKey mint) {
-    return createATAForProgram(idempotent, solanaAccounts, createRead(tokenProgram), fundingAccount, owner, mint);
-  }
-
-  public static Instruction createATA(final boolean idempotent,
-                                      final SolanaAccounts solanaAccounts,
-                                      final PublicKey fundingAccount,
-                                      final PublicKey programDerivedAddress,
-                                      final PublicKey owner,
-                                      final PublicKey mint) {
-    return createATAForProgram(
-        idempotent,
-        solanaAccounts,
-        solanaAccounts.readTokenProgram(),
-        fundingAccount,
-        programDerivedAddress,
-        owner,
-        mint
-    );
+                                                final PublicKey mint,
+                                                final PublicKey tokenProgram) {
+    return createATAForProgram(idempotent, solanaAccounts, fundingAccount, owner, mint, createRead(tokenProgram));
   }
 
   public static Instruction createATA(final boolean idempotent,
                                       final SolanaAccounts solanaAccounts,
                                       final PublicKey fundingAccount,
                                       final PublicKey owner,
+                                      final PublicKey pda,
                                       final PublicKey mint) {
     return createATAForProgram(
         idempotent,
         solanaAccounts,
-        solanaAccounts.readTokenProgram(),
+        fundingAccount,
+        pda,
+        owner,
+        mint,
+        solanaAccounts.readTokenProgram()
+    );
+  }
+
+  public static Instruction createATA(final boolean idempotent,
+                                      final SolanaAccounts solanaAccounts,
+                                      final PublicKey fundingAccount,
+                                      final PublicKey owner,
+                                      final PublicKey mint) {
+    return createATAForProgram(
+        idempotent,
+        solanaAccounts,
         fundingAccount,
         owner,
-        mint
+        mint,
+        solanaAccounts.readTokenProgram()
     );
   }
 
@@ -189,19 +189,19 @@ public final class AssociatedTokenProgram {
   }
 
   public static Instruction createATA2022(final boolean idempotent,
-                                           final SolanaAccounts solanaAccounts,
-                                           final PublicKey fundingAccount,
-                                           final PublicKey programDerivedAddress,
-                                           final PublicKey owner,
-                                           final PublicKey mint) {
+                                          final SolanaAccounts solanaAccounts,
+                                          final PublicKey fundingAccount,
+                                          final PublicKey pda,
+                                          final PublicKey owner,
+                                          final PublicKey mint) {
     return createATAForProgram(
         idempotent,
         solanaAccounts,
-        solanaAccounts.readToken2022Program(),
         fundingAccount,
-        programDerivedAddress,
+        pda,
         owner,
-        mint
+        mint,
+        solanaAccounts.readToken2022Program()
     );
   }
 
@@ -213,10 +213,10 @@ public final class AssociatedTokenProgram {
     return createATAForProgram(
         idempotent,
         solanaAccounts,
-        solanaAccounts.readToken2022Program(),
         fundingAccount,
         owner,
-        mint
+        mint,
+        solanaAccounts.readToken2022Program()
     );
   }
 

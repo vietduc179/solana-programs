@@ -264,9 +264,8 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   }
 
   @Override
-  public ProgramDerivedAddress findATA(final PublicKey mint,
-                                       final PublicKey tokenProgram) {
-    return AssociatedTokenProgram.findATA(solanaAccounts, tokenProgram, owner, mint);
+  public ProgramDerivedAddress findATA(final PublicKey tokenProgram, final PublicKey mint) {
+    return AssociatedTokenProgram.findATA(solanaAccounts, owner, tokenProgram, mint);
   }
 
   @Override
@@ -275,9 +274,8 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   }
 
   @Override
-  public ProgramDerivedAddress findATAForFeePayer(final PublicKey mint,
-                                                  final PublicKey tokenProgram) {
-    return AssociatedTokenProgram.findATA(solanaAccounts, tokenProgram, feePayer.publicKey(), mint);
+  public ProgramDerivedAddress findATAForFeePayer(final PublicKey tokenProgram, final PublicKey mint) {
+    return AssociatedTokenProgram.findATA(solanaAccounts, feePayer.publicKey(), tokenProgram, mint);
   }
 
   @Override
