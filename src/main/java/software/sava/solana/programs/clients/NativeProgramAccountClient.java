@@ -368,7 +368,7 @@ public interface NativeProgramAccountClient {
                                            final PublicKey pda,
                                            final PublicKey owner,
                                            final PublicKey mint) {
-    return AssociatedTokenProgram.createATA(idempotent, solanaAccounts(), fundingAccount, owner, pda, mint);
+    return AssociatedTokenProgram.createATA(idempotent, solanaAccounts(), fundingAccount, pda, owner, mint);
   }
 
   default Instruction createATAForFundedBy(final boolean idempotent,

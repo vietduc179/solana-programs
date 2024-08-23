@@ -152,8 +152,8 @@ public final class AssociatedTokenProgram {
   public static Instruction createATA(final boolean idempotent,
                                       final SolanaAccounts solanaAccounts,
                                       final PublicKey fundingAccount,
-                                      final PublicKey owner,
                                       final PublicKey pda,
+                                      final PublicKey owner,
                                       final PublicKey mint) {
     return createATAForProgram(
         idempotent,
