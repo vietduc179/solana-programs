@@ -24,13 +24,6 @@ ext {
   ORG = 'sava-software'
   REPO = 'solana-programs'
   VCS_URL = 'https://github.com/sava-software/solana-programs'
-
-  bouncycastleMinor = 'jdk18on'
-  bouncycastlePatch = '1.78.1' // https://www.bouncycastle.org/latest_releases.html#LATEST
-
-  jsoniter = '2.11.0'
-
-  sava = '1.4.2'
 }
 
 apply plugin: 'java-library'
@@ -76,14 +69,13 @@ configurations.configureEach {
 }
 
 dependencies {
-  implementation "systems.comodal:json-iterator:$jsoniter"
+  implementation libs.bouncycastle
+  implementation libs.json.iterator
+  implementation libs.sava.core
+  implementation libs.sava.rpc
 
-  implementation "software.sava:sava-core:$sava"
-  implementation "software.sava:sava-rpc:$sava"
-
-  testImplementation 'org.junit.jupiter:junit-jupiter-api:+'
-  testImplementation 'org.junit.jupiter:junit-jupiter-params:+'
-  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:+'
+  testImplementation libs.junit.jupiter
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 test {
