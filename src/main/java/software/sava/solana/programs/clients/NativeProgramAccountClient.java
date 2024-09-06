@@ -478,13 +478,7 @@ public interface NativeProgramAccountClient {
     );
   }
 
-  Instruction deactivateStakeAccount(final StakeAccount delegatedStakeAccount);
-
   Instruction deactivateStakeAccount(final PublicKey delegatedStakeAccount);
-
-  List<Instruction> deactivateStakeAccountInfos(final Collection<AccountInfo<StakeAccount>> delegatedStakeAccounts);
-
-  List<Instruction> deactivateStakeAccounts(final Collection<StakeAccount> delegatedStakeAccounts);
 
   Instruction withdrawStakeAccount(final StakeAccount stakeAccount, final long lamports);
 
