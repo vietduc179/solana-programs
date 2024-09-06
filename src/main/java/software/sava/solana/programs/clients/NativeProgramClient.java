@@ -252,8 +252,18 @@ public interface NativeProgramClient {
                                             final PublicKey staker,
                                             final PublicKey withdrawer);
 
-  Instruction delegateStakeAccount(final StakeAccount initializedStakeAccount,
-                                   final PublicKey validatorVoteAccount);
+  Instruction delegateStakeAccount(final PublicKey initializedStakeAccount,
+                                   final PublicKey validatorVoteAccount,
+                                   final PublicKey stakeAuthority);
+
+  default Instruction delegateStakeAccount(final StakeAccount initializedStakeAccount,
+                                           final PublicKey validatorVoteAccount) {
+    return delegateStakeAccount(
+        initializedStakeAccount.address(),
+        validatorVoteAccount,
+        initializedStakeAccount.stakeAuthority()
+    );
+  }
 
   Instruction reDelegateStakeAccount(final StakeAccount delegatedStakeAccount,
                                      final PublicKey uninitializedStakeAccount,

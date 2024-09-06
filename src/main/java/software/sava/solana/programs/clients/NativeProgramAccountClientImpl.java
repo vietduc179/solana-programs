@@ -558,6 +558,11 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   }
 
   @Override
+  public Instruction delegateStakeAccount(final PublicKey initializedStakeAccount, final PublicKey validatorVoteAccount) {
+    return nativeProgramClient.delegateStakeAccount(initializedStakeAccount, validatorVoteAccount, owner);
+  }
+
+  @Override
   public Instruction deactivateStakeAccount(final PublicKey delegatedStakeAccount) {
     return nativeProgramClient.deactivateStakeAccount(delegatedStakeAccount, owner);
   }

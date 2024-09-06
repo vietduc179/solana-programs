@@ -299,14 +299,16 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
     );
   }
 
+
   @Override
-  public Instruction delegateStakeAccount(final StakeAccount initializedStakeAccount,
-                                          final PublicKey validatorVoteAccount) {
+  public Instruction delegateStakeAccount(final PublicKey initializedStakeAccount,
+                                          final PublicKey validatorVoteAccount,
+                                          final PublicKey stakeAuthority) {
     return StakeProgram.delegateStake(
         accounts,
-        initializedStakeAccount.address(),
+        initializedStakeAccount,
         validatorVoteAccount,
-        initializedStakeAccount.stakeAuthority()
+        stakeAuthority
     );
   }
 

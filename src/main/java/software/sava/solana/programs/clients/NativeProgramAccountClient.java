@@ -478,6 +478,9 @@ public interface NativeProgramAccountClient {
     );
   }
 
+  Instruction delegateStakeAccount(final PublicKey initializedStakeAccount,
+                                   final PublicKey validatorVoteAccount);
+
   Instruction deactivateStakeAccount(final PublicKey delegatedStakeAccount);
 
   Instruction withdrawStakeAccount(final StakeAccount stakeAccount, final long lamports);
