@@ -7,8 +7,10 @@
 - The latest generally available JDK. This project will continue to move to the latest and will not maintain
   versions released against previous JDK's.
 
-## Dependencies
+## [Dependencies](src/main/java/module-info.java)
 
+- [JSON Iterator](https://github.com/comodal/json-iterator?tab=readme-ov-file#json-iterator)
+- [Bouncy Castle](https://www.bouncycastle.org/download/bouncy-castle-java/#latest)
 - [sava-core](https://github.com/sava-software/sava)
 - [sava-rpc](https://github.com/sava-software/sava)
 

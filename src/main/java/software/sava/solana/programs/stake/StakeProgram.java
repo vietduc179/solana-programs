@@ -484,12 +484,12 @@ public final class StakeProgram {
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH
         + PUBLIC_KEY_LENGTH
         + stakeAuthorize.l()
-        + Borsh.len(authoritySeedBytes)
+        + Borsh.lenVector(authoritySeedBytes)
         + PUBLIC_KEY_LENGTH];
     int i = Instructions.AuthorizeWithSeed.write(data);
     i += newAuthorizedPublicKey.write(data, i);
     i += stakeAuthorize.write(data, i);
-    i += Borsh.write(authoritySeedBytes, data, i);
+    i += Borsh.writeVector(authoritySeedBytes, data, i);
     authorityOwner.write(data, i);
     return Instruction.createInstruction(solanaAccounts.invokedStakeProgram(), keys, data);
   }
@@ -538,12 +538,12 @@ public final class StakeProgram {
     final byte[] authoritySeedBytes = authoritySeed.asciiSeed();
     final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH
         + stakeAuthorize.l()
-        + Borsh.len(authoritySeedBytes)
+        + Borsh.lenVector(authoritySeedBytes)
         + PUBLIC_KEY_LENGTH];
 
     int i = Instructions.AuthorizeCheckedWithSeed.write(data);
     i += stakeAuthorize.write(data, i);
-    i += Borsh.write(authoritySeedBytes, data, i);
+    i += Borsh.writeVector(authoritySeedBytes, data, i);
     authorityOwner.write(data, i);
     return Instruction.createInstruction(solanaAccounts.invokedStakeProgram(), keys, data);
   }
