@@ -77,10 +77,6 @@ public interface NativeProgramAccountClient {
     return createClient(SolanaAccounts.MAIN_NET, owner, feePayer);
   }
 
-  static CompletableFuture<Long> getMinimumBalanceForStakeAccount(final SolanaRpcClient rpcClient) {
-    return rpcClient.getMinimumBalanceForRentExemption(StakeAccount.BYTES);
-  }
-
   PublicKey ownerPublicKey();
 
   AccountMeta feePayer();
