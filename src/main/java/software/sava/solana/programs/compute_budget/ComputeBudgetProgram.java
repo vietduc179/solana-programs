@@ -1,8 +1,8 @@
 package software.sava.solana.programs.compute_budget;
 
 import software.sava.core.accounts.meta.AccountMeta;
-import software.sava.core.tx.Instruction;
 import software.sava.core.encoding.ByteUtil;
+import software.sava.core.tx.Instruction;
 
 import static software.sava.core.accounts.meta.AccountMeta.NO_KEYS;
 import static software.sava.core.tx.Instruction.createInstruction;
@@ -10,6 +10,7 @@ import static software.sava.core.tx.Instruction.createInstruction;
 public final class ComputeBudgetProgram {
 
   public static int COMPUTE_UNITS_CONSUMED = 300;
+  public static int MAX_COMPUTE_BUDGET = 1_400_000;
 
   public static Instruction setComputeUnitLimit(final AccountMeta invokedProgram, final int units) {
     final byte[] data = new byte[5];
