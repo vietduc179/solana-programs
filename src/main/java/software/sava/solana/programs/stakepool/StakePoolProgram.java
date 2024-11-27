@@ -748,9 +748,9 @@ public final class StakePoolProgram {
     );
     return List.of(
         createWrite(stakePool),
+        createRead(stakePoolWithdrawAuthority.publicKey()),
         createWrite(reserveStakeAccount),
         createReadOnlySigner(solDepositAuthority),
-        createRead(stakePoolWithdrawAuthority.publicKey()),
         createWrite(poolTokenATA),
         createWrite(poolTokenFeeATA),
         createWrite(poolTokenReferralFeeATA),
