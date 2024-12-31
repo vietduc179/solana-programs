@@ -54,6 +54,22 @@ public record StakePoolState(PublicKey address,
     return this.totalLamports.divide(this.poolTokenSupply, scale, roundingMode).stripTrailingZeros();
   }
 
+  public static final int MANAGER_OFFSET = 1;
+  public static final int STAKE_OFFSET = MANAGER_OFFSET + PUBLIC_KEY_LENGTH;
+  public static final int STAKE_DEPOSIT_AUTHORITY_OFFSET = STAKE_OFFSET + PUBLIC_KEY_LENGTH;
+  public static final int STAKE_WITHDRAWAL_BUMP_SEED_OFFSET = STAKE_DEPOSIT_AUTHORITY_OFFSET + PUBLIC_KEY_LENGTH;
+  public static final int VALIDATOR_LIST_OFFSET = STAKE_WITHDRAWAL_BUMP_SEED_OFFSET + 1;
+  public static final int RESERVE_STAKE_OFFSET = VALIDATOR_LIST_OFFSET + PUBLIC_KEY_LENGTH;
+  public static final int POOL_MINT_OFFSET = RESERVE_STAKE_OFFSET + PUBLIC_KEY_LENGTH;
+  public static final int MANAGER_FEE_OFFSET = POOL_MINT_OFFSET + PUBLIC_KEY_LENGTH;
+  public static final int TOKEN_PROGRAM_ID_OFFSET = MANAGER_FEE_OFFSET + PUBLIC_KEY_LENGTH;
+  public static final int TOTAL_LAMPORTS_OFFSET = TOKEN_PROGRAM_ID_OFFSET + PUBLIC_KEY_LENGTH;
+  public static final int POOL_TOKEN_SUPPLY_OFFSET = TOTAL_LAMPORTS_OFFSET + Long.BYTES;
+  public static final int LAST_UPDATE_EPOCH_OFFSET = POOL_TOKEN_SUPPLY_OFFSET + Long.BYTES;
+  public static final int LOCKUP_OFFSET = LAST_UPDATE_EPOCH_OFFSET + Long.BYTES;
+  public static final int EPOCH_FEE_OFFSET = LOCKUP_OFFSET + LockUp.BYTES;
+  public static final int NEXT_EPOCH_FEE_OFFSET = EPOCH_FEE_OFFSET + Fee.BYTES;
+
   public static final BiFunction<PublicKey, byte[], StakePoolState> FACTORY = StakePoolState::parseProgramData;
 
   public static StakePoolState parseProgramData(final byte[] data) {
@@ -81,7 +97,6 @@ public record StakePoolState(PublicKey address,
     offset += PUBLIC_KEY_LENGTH;
     final var tokenProgramId = readPubKey(data, offset);
     offset += PUBLIC_KEY_LENGTH;
-
     final long totalLamports = ByteUtil.getInt64LE(data, offset);
     offset += Long.BYTES;
     final long poolTokenSupply = ByteUtil.getInt64LE(data, offset);
