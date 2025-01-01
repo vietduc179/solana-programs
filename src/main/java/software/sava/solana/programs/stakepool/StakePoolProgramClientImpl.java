@@ -144,14 +144,15 @@ final class StakePoolProgramClientImpl implements StakePoolProgramClient {
     );
   }
 
+
   @Override
-  public Instruction withdrawSol(final AccountInfo<StakePoolState> stakePoolStateAccountInfo,
+  public Instruction withdrawSol(final PublicKey stakePoolProgram,
+                                 final StakePoolState stakePoolState,
                                  final PublicKey poolTokenATA,
                                  final long poolTokenAmount) {
-    final var stakePoolState = stakePoolStateAccountInfo.data();
     return StakePoolProgram.withdrawSol(
         accounts,
-        AccountMeta.createInvoked(stakePoolStateAccountInfo.owner()),
+        AccountMeta.createInvoked(stakePoolProgram),
         stakePoolState.address(),
         owner,
         poolTokenATA,

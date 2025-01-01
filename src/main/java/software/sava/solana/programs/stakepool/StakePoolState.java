@@ -46,14 +46,6 @@ public record StakePoolState(PublicKey address,
                              long lastEpochPoolTokenSupply,
                              long lastEpochTotalLamports) {
 
-  public BigDecimal calculateSolPrice(final MathContext mathContext) {
-    return totalLamports.divide(poolTokenSupply, mathContext).stripTrailingZeros();
-  }
-
-  public BigDecimal calculateSolPrice(final int scale, final RoundingMode roundingMode) {
-    return this.totalLamports.divide(this.poolTokenSupply, scale, roundingMode).stripTrailingZeros();
-  }
-
   public static final int MANAGER_OFFSET = 1;
   public static final int STAKE_OFFSET = MANAGER_OFFSET + PUBLIC_KEY_LENGTH;
   public static final int STAKE_DEPOSIT_AUTHORITY_OFFSET = STAKE_OFFSET + PUBLIC_KEY_LENGTH;
@@ -69,6 +61,18 @@ public record StakePoolState(PublicKey address,
   public static final int LOCKUP_OFFSET = LAST_UPDATE_EPOCH_OFFSET + Long.BYTES;
   public static final int EPOCH_FEE_OFFSET = LOCKUP_OFFSET + LockUp.BYTES;
   public static final int NEXT_EPOCH_FEE_OFFSET = EPOCH_FEE_OFFSET + Fee.BYTES;
+
+  public BigDecimal calculateSolPrice(final MathContext mathContext) {
+    return totalLamports.signum() == 0 || poolTokenSupply.signum() == 0
+        ? ZERO
+        : totalLamports.divide(poolTokenSupply, mathContext).stripTrailingZeros();
+  }
+
+  public BigDecimal calculateSolPrice(final int scale, final RoundingMode roundingMode) {
+    return totalLamports.signum() == 0 || poolTokenSupply.signum() == 0
+        ? ZERO
+        : totalLamports.divide(poolTokenSupply, scale, roundingMode).stripTrailingZeros();
+  }
 
   public static final BiFunction<PublicKey, byte[], StakePoolState> FACTORY = StakePoolState::parseProgramData;
 

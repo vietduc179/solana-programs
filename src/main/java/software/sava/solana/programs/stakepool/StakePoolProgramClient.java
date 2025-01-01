@@ -59,9 +59,22 @@ public interface StakePoolProgramClient {
                                        final PublicKey poolTokenATA,
                                        final long minimumPoolTokensOut);
 
-  Instruction withdrawSol(final AccountInfo<StakePoolState> stakePoolStateAccountInfo,
+  Instruction withdrawSol(final PublicKey stakePoolProgram,
+                          final StakePoolState stakePoolState,
                           final PublicKey poolTokenATA,
                           final long poolTokenAmount);
+
+  default Instruction withdrawSol(final AccountInfo<StakePoolState> stakePoolStateAccountInfo,
+                                  final PublicKey poolTokenATA,
+                                  final long poolTokenAmount) {
+    final var stakePoolState = stakePoolStateAccountInfo.data();
+    return withdrawSol(
+        stakePoolStateAccountInfo.owner(),
+        stakePoolState,
+        poolTokenATA,
+        poolTokenAmount
+    );
+  }
 
   Instruction withdrawSolWithSlippage(final AccountInfo<StakePoolState> stakePoolStateAccountInfo,
                                       final PublicKey poolTokenATA,
