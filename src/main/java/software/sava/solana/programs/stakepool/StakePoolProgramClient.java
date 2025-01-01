@@ -2,6 +2,7 @@ package software.sava.solana.programs.stakepool;
 
 import software.sava.core.accounts.ProgramDerivedAddress;
 import software.sava.core.accounts.PublicKey;
+import software.sava.core.accounts.SolanaAccounts;
 import software.sava.core.tx.Instruction;
 import software.sava.rpc.json.http.client.SolanaRpcClient;
 import software.sava.rpc.json.http.response.AccountInfo;
@@ -22,6 +23,8 @@ public interface StakePoolProgramClient {
 
   NativeProgramAccountClient nativeProgramAccountClient();
 
+  SolanaAccounts solanaAccounts();
+
   StakePoolAccounts stakePoolAccounts();
 
   static CompletableFuture<AccountInfo<StakePoolState>> fetchProgramState(final SolanaRpcClient rpcClient,
@@ -38,6 +41,8 @@ public interface StakePoolProgramClient {
   static ProgramDerivedAddress findStakePoolWithdrawAuthority(final AccountInfo<StakePoolState> stakePoolStateAccountInfo) {
     return StakePoolProgram.findStakePoolWithdrawAuthority(stakePoolStateAccountInfo.pubKey(), stakePoolStateAccountInfo.owner());
   }
+
+  PublicKey ownerPublicKey();
 
   Instruction depositSol(final AccountInfo<StakePoolState> stakePoolStateAccountInfo,
                          final PublicKey poolTokenATA,
@@ -81,18 +86,31 @@ public interface StakePoolProgramClient {
                                       final long poolTokenAmount,
                                       final long lamportsOut);
 
-  Instruction withdrawStake(final AccountInfo<StakePoolState> stakePoolStateAccountInfo,
+  Instruction withdrawStake(final PublicKey poolProgram,
+                            final StakePoolState stakePoolState,
                             final PublicKey validatorOrReserveStakeAccount,
                             final PublicKey uninitializedStakeAccount,
                             final PublicKey stakeAccountWithdrawalAuthority,
                             final PublicKey poolTokenATA,
                             final long poolTokenAmount);
 
-  Instruction withdrawStake(final AccountInfo<StakePoolState> stakePoolStateAccountInfo,
-                            final PublicKey validatorOrReserveStakeAccount,
-                            final PublicKey uninitializedStakeAccount,
-                            final PublicKey poolTokenATA,
-                            final long poolTokenAmount);
+  default Instruction withdrawStake(final AccountInfo<StakePoolState> stakePoolStateAccountInfo,
+                                    final PublicKey validatorOrReserveStakeAccount,
+                                    final PublicKey uninitializedStakeAccount,
+                                    final PublicKey stakeAccountWithdrawalAuthority,
+                                    final PublicKey poolTokenATA,
+                                    final long poolTokenAmount) {
+    final var stakePoolState = stakePoolStateAccountInfo.data();
+    return withdrawStake(
+        stakePoolStateAccountInfo.owner(),
+        stakePoolState,
+        validatorOrReserveStakeAccount,
+        uninitializedStakeAccount,
+        stakeAccountWithdrawalAuthority,
+        poolTokenATA,
+        poolTokenAmount
+    );
+  }
 
   Instruction withdrawStakeWithSlippage(final AccountInfo<StakePoolState> stakePoolStateAccountInfo,
                                         final PublicKey validatorOrReserveStakeAccount,

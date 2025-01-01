@@ -28,8 +28,18 @@ final class StakePoolProgramClientImpl implements StakePoolProgramClient {
   }
 
   @Override
+  public SolanaAccounts solanaAccounts() {
+    return accounts;
+  }
+
+  @Override
   public StakePoolAccounts stakePoolAccounts() {
     return stakePoolAccounts;
+  }
+
+  @Override
+  public PublicKey ownerPublicKey() {
+    return owner;
   }
 
   @Override
@@ -210,43 +220,27 @@ final class StakePoolProgramClientImpl implements StakePoolProgramClient {
     );
   }
 
-
   @Override
-  public Instruction withdrawStake(final AccountInfo<StakePoolState> stakePoolStateAccountInfo,
+  public Instruction withdrawStake(final PublicKey poolProgram,
+                                   final StakePoolState stakePoolState,
                                    final PublicKey validatorOrReserveStakeAccount,
                                    final PublicKey uninitializedStakeAccount,
                                    final PublicKey stakeAccountWithdrawalAuthority,
                                    final PublicKey poolTokenATA,
                                    final long poolTokenAmount) {
-    final var stakePoolState = stakePoolStateAccountInfo.data();
     return StakePoolProgram.withdrawStake(
         accounts,
-        AccountMeta.createInvoked(stakePoolStateAccountInfo.owner()),
+        AccountMeta.createInvoked(poolProgram),
         stakePoolState.address(),
         stakePoolState.validatorList(),
         validatorOrReserveStakeAccount,
         uninitializedStakeAccount,
         stakeAccountWithdrawalAuthority,
-        owner,
+        ownerPublicKey(),
         poolTokenATA,
         stakePoolState.managerFeeAccount(),
         stakePoolState.poolMint(),
         stakePoolState.tokenProgramId(),
-        poolTokenAmount
-    );
-  }
-
-  public Instruction withdrawStake(final AccountInfo<StakePoolState> stakePoolStateAccountInfo,
-                                   final PublicKey validatorOrReserveStakeAccount,
-                                   final PublicKey uninitializedStakeAccount,
-                                   final PublicKey poolTokenATA,
-                                   final long poolTokenAmount) {
-    return withdrawStake(
-        stakePoolStateAccountInfo,
-        validatorOrReserveStakeAccount,
-        uninitializedStakeAccount,
-        owner,
-        poolTokenATA,
         poolTokenAmount
     );
   }
