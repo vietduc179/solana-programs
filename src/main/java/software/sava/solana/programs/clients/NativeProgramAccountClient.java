@@ -483,7 +483,7 @@ public interface NativeProgramAccountClient {
 
   default Instruction closeStakeAccount(final AccountInfo<StakeAccount> stakeAccountInfo) {
     final var stakeAccount = stakeAccountInfo.data();
-    return withdrawStakeAccount(stakeAccount, stakeAccountInfo.lamports() + stakeAccount.stake());
+    return withdrawStakeAccount(stakeAccount, stakeAccountInfo.lamports());
   }
 
   default List<Instruction> closeStakeAccounts(final Collection<AccountInfo<StakeAccount>> stakeAccounts) {
