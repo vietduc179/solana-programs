@@ -377,5 +377,4 @@ record NativeProgramClientImpl(SolanaAccounts accounts) implements NativeProgram
   public Instruction deactivateStakeAccount(final PublicKey delegatedStakeAccount, final PublicKey stakeAuthority) {
     return StakeProgram.deactivate(accounts, delegatedStakeAccount, stakeAuthority);
   }
-
 }
