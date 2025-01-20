@@ -32,7 +32,7 @@ public record StakeAccount(PublicKey address,
     ACTIVATING,
     ACTIVE,
     DE_ACTIVATING,
-    INACTIVE;
+    INACTIVE
   }
 
   public State state(final long currentEpoch) {

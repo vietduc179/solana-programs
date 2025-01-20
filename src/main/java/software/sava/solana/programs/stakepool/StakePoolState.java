@@ -212,7 +212,7 @@ public record StakePoolState(PublicKey address,
     );
   }
 
-  public record Fee(long denominator, long numerator) {
+  public record Fee(long denominator, long numerator) implements Comparable<Fee> {
 
     static final int BYTES = 16;
 
@@ -232,6 +232,15 @@ public record StakePoolState(PublicKey address,
 
     public double toRatio() {
       return numerator == 0 || denominator == 0 ? 0 : numerator / (double) denominator;
+    }
+
+    @Override
+    public int compareTo(final Fee o) {
+      if (numerator == 0 || o.numerator == 0) {
+        return Long.compare(numerator, o.numerator);
+      } else {
+        return Double.compare(toRatio(), o.toRatio());
+      }
     }
   }
 
