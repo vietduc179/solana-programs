@@ -1,28 +1,5 @@
-def getAppVersion = { ->
-  try (final var gitTagOut = new ByteArrayOutputStream()) {
-    exec {
-      commandLine 'git', 'tag', '--points-at', 'HEAD'
-      standardOutput = gitTagOut
-    }
-    final var tagName = gitTagOut.toString().strip()
-    if (tagName.isBlank()) {
-      try (final var gitHashOut = new ByteArrayOutputStream()) {
-        exec {
-          commandLine 'git', 'rev-parse', '--short', 'HEAD'
-          standardOutput = gitHashOut
-        }
-        return 'git-' + gitHashOut.toString().strip()
-      }
-    } else {
-      return tagName
-    }
-  }
-} as Object
-
 ext {
-  VERSION = getAppVersion()
-  ORG = 'sava-software'
-  REPO = 'solana-programs'
+  VERSION = project.findProperty('version')
   VCS_URL = 'https://github.com/sava-software/solana-programs'
 }
 
@@ -32,7 +9,7 @@ apply plugin: 'maven-publish'
 project.group = 'software.sava'
 project.version = "$VERSION"
 
-final JLV = JavaLanguageVersion.of(project.findProperty('jv') as Integer ?: 23)
+final JLV = JavaLanguageVersion.of(project.findProperty('javaVersion') as Integer ?: 23)
 
 plugins.withType(JavaPlugin).configureEach {
   java {
@@ -75,29 +52,51 @@ test {
   useJUnitPlatform()
   testLogging {
     events "passed", "skipped", "failed", "standardOut", "standardError"
-    exceptionFormat "full"
-    showStandardStreams true
+    exceptionFormat = "full"
+    showStandardStreams = true
   }
 }
 
-tasks.register('sourcesJar', Jar) {
-  from sourceSets.main.allJava
-  archiveClassifier.set('sources')
+tasks.withType(Javadoc).configureEach {
+  options.addStringOption('Xdoclint:none', '-quiet')
+}
+
+java {
+  withJavadocJar()
+  withSourcesJar()
 }
 
 publishing {
   publications {
     mavenJava(MavenPublication) {
       from components.java
-      artifact sourcesJar
-      groupId project.group
-      artifactId project.name
+
+      groupId = project.group
+      artifactId = project.name
       version = project.version
+
       pom {
         name = project.name
+        description = "Native Solana & SPL Program Clients "
         url = "$VCS_URL"
+        licenses {
+          license {
+            name = 'GNU General Public License v3.0'
+            url = 'https://github.com/sava-software/solana-programs/blob/main/LICENSE'
+          }
+        }
+        developers {
+          developer {
+            name = 'Jim'
+            id = 'jpe7s'
+            email = 'jpe7s.salt188@passfwd.com'
+            organization = 'Sava Software'
+            organizationUrl = 'https://github.com/sava-software'
+          }
+        }
         scm {
           connection = 'scm:git:git@github.com:sava-software/solana-programs.git'
+          developerConnection = 'scm:git:ssh@github.com:sava-software/solana-programs.git'
           url = "$VCS_URL"
         }
       }
