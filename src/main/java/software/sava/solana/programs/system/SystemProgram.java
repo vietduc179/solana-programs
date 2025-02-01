@@ -2,6 +2,7 @@ package software.sava.solana.programs.system;
 
 import software.sava.core.accounts.AccountWithSeed;
 import software.sava.core.accounts.PublicKey;
+import software.sava.core.accounts.SolanaAccounts;
 import software.sava.core.accounts.meta.AccountMeta;
 import software.sava.core.programs.Discriminator;
 import software.sava.core.tx.Instruction;
@@ -357,6 +358,98 @@ public final class SystemProgram {
     programOwner.write(data, i);
 
     return createInstruction(invokedProgram, keys, data);
+  }
+
+  public static Instruction advanceNonceAccount(final SolanaAccounts solanaAccounts,
+                                                final PublicKey nonceAccount,
+                                                final PublicKey nonceAuthority) {
+    final var keys = List.of(
+        createWrite(nonceAccount),
+        solanaAccounts.readRecentBlockhashesSysVar(),
+        createReadOnlySigner(nonceAuthority)
+    );
+
+    final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH];
+    Instructions.AdvanceNonceAccount.write(data);
+
+    return createInstruction(solanaAccounts.invokedSystemProgram(), keys, data);
+  }
+
+  public static Instruction withdrawNonceAccount(final SolanaAccounts solanaAccounts,
+                                                 final PublicKey nonceAccount,
+                                                 final PublicKey recipient,
+                                                 final PublicKey nonceAuthority,
+                                                 final long lamports) {
+    final var keys = List.of(
+        createWrite(nonceAccount),
+        createWrite(recipient),
+        solanaAccounts.readRecentBlockhashesSysVar(),
+        solanaAccounts.readRentSysVar(),
+        createReadOnlySigner(nonceAuthority)
+    );
+
+    final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + Long.BYTES];
+    Instructions.WithdrawNonceAccount.write(data);
+    putInt64LE(data, 4, lamports);
+
+    return createInstruction(solanaAccounts.invokedSystemProgram(), keys, data);
+  }
+
+  public static Instruction initializeNonceAccount(final SolanaAccounts solanaAccounts,
+                                                   final PublicKey nonceAccount,
+                                                   final PublicKey nonceAuthority) {
+    final var keys = List.of(
+        createWrite(nonceAccount),
+        solanaAccounts.readRecentBlockhashesSysVar(),
+        solanaAccounts.readRentSysVar()
+    );
+
+    final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + PUBLIC_KEY_LENGTH];
+    Instructions.InitializeNonceAccount.write(data);
+    nonceAuthority.write(data, NATIVE_DISCRIMINATOR_LENGTH);
+
+    return createInstruction(solanaAccounts.invokedSystemProgram(), keys, data);
+  }
+
+  public static Instruction authorizeNonceAccount(final AccountMeta invokedProgram,
+                                                  final PublicKey nonceAccount,
+                                                  final PublicKey currentNonceAuthority,
+                                                  final PublicKey newNonceAuthority) {
+    final var keys = List.of(
+        createWrite(nonceAccount),
+        createReadOnlySigner(currentNonceAuthority)
+    );
+
+    final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH + PUBLIC_KEY_LENGTH];
+    Instructions.AuthorizeNonceAccount.write(data);
+    newNonceAuthority.write(data, NATIVE_DISCRIMINATOR_LENGTH);
+
+    return createInstruction(invokedProgram, keys, data);
+  }
+
+  public static Instruction authorizeNonceAccount(final SolanaAccounts solanaAccounts,
+                                                  final PublicKey nonceAccount,
+                                                  final PublicKey currentNonceAuthority,
+                                                  final PublicKey newNonceAuthority) {
+    return authorizeNonceAccount(
+        solanaAccounts.invokedSystemProgram(),
+        nonceAccount,
+        currentNonceAuthority,
+        newNonceAuthority
+    );
+  }
+
+  public static Instruction upgradeNonceAccount(final AccountMeta invokedProgram, final PublicKey nonceAccount) {
+    final var keys = List.of(createWrite(nonceAccount));
+
+    final byte[] data = new byte[NATIVE_DISCRIMINATOR_LENGTH];
+    Instructions.UpgradeNonceAccount.write(data);
+
+    return createInstruction(invokedProgram, keys, data);
+  }
+
+  public static Instruction upgradeNonceAccount(final SolanaAccounts solanaAccounts, final PublicKey nonceAccount) {
+    return upgradeNonceAccount(solanaAccounts.invokedSystemProgram(), nonceAccount);
   }
 
   private SystemProgram() {

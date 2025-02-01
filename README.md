@@ -14,13 +14,16 @@
 - [sava-core](https://github.com/sava-software/sava)
 - [sava-rpc](https://github.com/sava-software/sava)
 
-### Add Dependency
+## Dependency Configuration
 
-Create
-a [GitHub user access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-personal-access-token-classic)
-with read access to GitHub Packages.
+### GitHub Access Token
 
-Then add the following to your Gradle build script.
+[Generate a classic token](https://github.com/settings/tokens) with the `read:packages` scope needed to access
+dependencies hosted on GitHub Package Repository.
+
+### Gradle
+
+#### build.gradle
 
 ```groovy
 repositories {
@@ -33,6 +36,10 @@ repositories {
   }
   maven {
     url = "https://maven.pkg.github.com/sava-software/solana-programs"
+    credentials {
+      username = GITHUB_USERNAME
+      password = GITHUB_PERSONAL_ACCESS_TOKEN
+    }
   }
 }
 
@@ -45,4 +52,84 @@ dependencies {
 
 ## Contribution
 
-Unit tests are needed and welcomed. Otherwise, please open an issue or send an email before working on a pull request.
+Unit tests are needed and welcomed. Otherwise, please open a discussion, issue or send an email before working on a pull
+request.
+
+## Durable Transactions
+
+### Create & Initialize Nonce Account
+
+```
+final Signer signer = ...
+ 
+final var rpcEndpoint = URI.create("https://mainnet.helius-rpc.com/?api-key=");
+try (final var httpClient = HttpClient.newHttpClient()) {
+  final var rpcClient = SolanaRpcClient.createClient(rpcEndpoint, httpClient);
+
+  final var blockHashFuture = rpcClient.getLatestBlockHash();
+  final var minRentFuture = rpcClient.getMinimumBalanceForRentExemption(NonceAccount.BYTES);
+
+  final var solanaAccounts = SolanaAccounts.MAIN_NET;
+  final var nonceAccountWithSeed = PublicKey.createOffCurveAccountWithAsciiSeed(
+      signer.publicKey(),
+      "nonce",
+      solanaAccounts.systemProgram()
+  );
+
+  final var initializeNonceAccountIx = SystemProgram.initializeNonceAccount(
+      solanaAccounts,
+      nonceAccountWithSeed.publicKey(),
+      signer.publicKey()
+  );
+  
+  System.out.format("""
+          Fetching block hash and minimum rent to create nonce account %s with authority %s.
+          
+          """,
+      nonceAccountWithSeed.publicKey(),
+      signer.publicKey()
+  );
+
+  final long minRent = minRentFuture.join();
+  final var createNonceAccountIx = SystemProgram.createAccountWithSeed(
+      solanaAccounts.invokedSystemProgram(),
+      signer.publicKey(),
+      nonceAccountWithSeed,
+      minRent,
+      NonceAccount.BYTES,
+      solanaAccounts.systemProgram()
+  );
+
+  final var instructions = List.of(createNonceAccountIx, initializeNonceAccountIx);
+  final var transaction = Transaction.createTx(signer.publicKey(), instructions);
+
+  final var blockHash = blockHashFuture.join().blockHash();
+  transaction.setRecentBlockHash(blockHash);
+  transaction.sign(signer);
+
+  final var base64Encoded = transaction.base64EncodeToString();
+  final var sendTransactionFuture = rpcClient.sendTransaction(base64Encoded);
+  System.out.format("""
+          Creating nonce account %s
+          https://explorer.solana.com/tx/%s
+          
+          """,
+      nonceAccountWithSeed.publicKey(),
+      transaction.getBase58Id()
+  );
+
+  final var sig = sendTransactionFuture.join();
+  System.out.format("""
+          Confirmed transaction %s
+          https://solscan.io/account/%s
+          
+          """,
+      sig,
+      nonceAccountWithSeed.publicKey()
+  );
+
+  final var nonceAccountInfo = rpcClient.getAccountInfo(nonceAccountWithSeed.publicKey()).join();
+  final var nonceAccount = NonceAccount.read(nonceAccountInfo);
+  System.out.println(nonceAccount);
+}
+```
