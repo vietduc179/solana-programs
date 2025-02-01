@@ -62,9 +62,8 @@ request.
 ```
 final Signer signer = ...
  
-final var rpcEndpoint = URI.create("https://mainnet.helius-rpc.com/?api-key=");
 try (final var httpClient = HttpClient.newHttpClient()) {
-  final var rpcClient = SolanaRpcClient.createClient(rpcEndpoint, httpClient);
+  final var rpcClient = SolanaRpcClient.createClient(SolanaNetwork.MAIN_NET.getEndpoint(), httpClient);
 
   final var blockHashFuture = rpcClient.getLatestBlockHash();
   final var minRentFuture = rpcClient.getMinimumBalanceForRentExemption(NonceAccount.BYTES);
@@ -131,5 +130,50 @@ try (final var httpClient = HttpClient.newHttpClient()) {
   final var nonceAccountInfo = rpcClient.getAccountInfo(nonceAccountWithSeed.publicKey()).join();
   final var nonceAccount = NonceAccount.read(nonceAccountInfo);
   System.out.println(nonceAccount);
+}
+```
+
+### Create & Send Durable Transaction
+
+```
+final var signer = ...
+final var nonceAccountKey = PublicKey.fromBase58Encoded("");
+final var sendToKey = PublicKey.fromBase58Encoded("");
+final var transferSOL = new BigDecimal("0.0");
+
+final var solanaAccounts = SolanaAccounts.MAIN_NET;
+try (final var httpClient = HttpClient.newHttpClient()) {
+  final var rpcClient = SolanaRpcClient.createClient(SolanaNetwork.MAIN_NET.getEndpoint(), httpClient);
+
+  final var nonceAccountInfo = rpcClient.getAccountInfo(nonceAccountKey).join();
+  final var nonceAccount = NonceAccount.read(nonceAccountInfo);
+  System.out.println(nonceAccount);
+
+  final var advanceNonceIx = nonceAccount.advanceNonceAccount(solanaAccounts);
+  final var transferIx = SystemProgram.transfer(
+      solanaAccounts.invokedSystemProgram(),
+      signer.publicKey(),
+      sendToKey,
+      LamportDecimal.fromBigDecimal(transferSOL).longValue()
+  );
+
+  final var instructions = List.of(advanceNonceIx, transferIx);
+  final var transaction = Transaction.createTx(signer.publicKey(), instructions);
+  transaction.setRecentBlockHash(nonceAccount.nonce());
+  transaction.sign(signer);
+
+  final var base64Encoded = transaction.base64EncodeToString();
+  final var sendTransactionFuture = rpcClient.sendTransaction(base64Encoded);
+  System.out.format("""
+          Transferring %s SOL from %s to %s.
+          https://explorer.solana.com/tx/%s
+          
+          """,
+      transferSOL.toPlainString(), signer.publicKey(), sendToKey,
+      transaction.getBase58Id()
+  );
+
+  final var sig = sendTransactionFuture.join();
+  System.out.println("Confirmed transaction " + sig);
 }
 ```

@@ -1,8 +1,10 @@
 package software.sava.solana.programs.system;
 
 import software.sava.core.accounts.PublicKey;
+import software.sava.core.accounts.SolanaAccounts;
 import software.sava.core.encoding.ByteUtil;
 import software.sava.core.rpc.Filter;
+import software.sava.core.tx.Instruction;
 import software.sava.core.tx.Transaction;
 import software.sava.rpc.json.http.response.AccountInfo;
 import software.sava.solana.programs.stake.StakeState;
@@ -95,5 +97,23 @@ public record NonceAccount(PublicKey address,
         nonce,
         lamportsPerSignature
     );
+  }
+
+  public Instruction advanceNonceAccount() {
+    return advanceNonceAccount(SolanaAccounts.MAIN_NET);
+  }
+
+  public Instruction advanceNonceAccount(final SolanaAccounts solanaAccounts) {
+    return SystemProgram.advanceNonceAccount(solanaAccounts, address, authority);
+  }
+
+  public void setNonce(final Transaction transaction) {
+    setNonce(SolanaAccounts.MAIN_NET, transaction);
+  }
+
+  public void setNonce(final SolanaAccounts solanaAccounts, final Transaction transaction) {
+    transaction.setRecentBlockHash(nonce);
+    final var advanceNonceIx = advanceNonceAccount(solanaAccounts);
+    transaction.prependIx(advanceNonceIx);
   }
 }
