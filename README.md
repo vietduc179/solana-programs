@@ -55,15 +55,19 @@ dependencies {
 Unit tests are needed and welcomed. Otherwise, please open a discussion, issue or send an email before working on a pull
 request.
 
-## Durable Transactions
+## Durable Nonce Transactions
+
+See the [official Solana documentation](https://solana.com/developers/courses/offline-transactions/durable-nonces) for
+context on durable nonce transactions.
 
 ### Create & Initialize Nonce Account
 
 ```
 final Signer signer = ...
  
+final var rpcEndpoint = SolanaNetwork.MAIN_NET.getEndpoint();
 try (final var httpClient = HttpClient.newHttpClient()) {
-  final var rpcClient = SolanaRpcClient.createClient(SolanaNetwork.MAIN_NET.getEndpoint(), httpClient);
+  final var rpcClient = SolanaRpcClient.createClient(rpcEndpoint, httpClient);
 
   final var blockHashFuture = rpcClient.getLatestBlockHash();
   final var minRentFuture = rpcClient.getMinimumBalanceForRentExemption(NonceAccount.BYTES);
@@ -133,7 +137,7 @@ try (final var httpClient = HttpClient.newHttpClient()) {
 }
 ```
 
-### Create & Send Durable Transaction
+### Create & Send Durable Nonce Transaction
 
 ```
 final var signer = ...
@@ -142,8 +146,9 @@ final var sendToKey = PublicKey.fromBase58Encoded("");
 final var transferSOL = new BigDecimal("0.0");
 
 final var solanaAccounts = SolanaAccounts.MAIN_NET;
+final var rpcEndpoint = SolanaNetwork.MAIN_NET.getEndpoint();
 try (final var httpClient = HttpClient.newHttpClient()) {
-  final var rpcClient = SolanaRpcClient.createClient(SolanaNetwork.MAIN_NET.getEndpoint(), httpClient);
+  final var rpcClient = SolanaRpcClient.createClient(rpcEndpoint, httpClient);
 
   final var nonceAccountInfo = rpcClient.getAccountInfo(nonceAccountKey).join();
   final var nonceAccount = NonceAccount.read(nonceAccountInfo);
