@@ -21,17 +21,21 @@ import java.util.concurrent.CompletableFuture;
 public interface NativeProgramAccountClient {
 
   static NativeProgramAccountClient createClient(final SolanaAccounts accounts,
-                                                 final AccountMeta ownerAndFeePayer) {
-    return new NativeProgramAccountClientImpl(accounts, ownerAndFeePayer.publicKey(), ownerAndFeePayer);
+                                                 final PublicKey owner,
+                                                 final AccountMeta feePayer) {
+    final var nativeClient = NativeProgramClient.createClient(accounts);
+    return new NativeProgramAccountClientImpl(nativeClient, owner, feePayer);
   }
 
-  static NativeProgramAccountClient createClient(final SolanaAccounts accounts,
-                                                 final PublicKey ownerAndFeePayer) {
+  static NativeProgramAccountClient createClient(final SolanaAccounts accounts, final AccountMeta ownerAndFeePayer) {
+    return createClient(accounts, ownerAndFeePayer.publicKey(), ownerAndFeePayer);
+  }
+
+  static NativeProgramAccountClient createClient(final SolanaAccounts accounts, final PublicKey ownerAndFeePayer) {
     return createClient(accounts, AccountMeta.createFeePayer(ownerAndFeePayer));
   }
 
-  static NativeProgramAccountClient createClient(final SolanaAccounts accounts,
-                                                 final Signer ownerAndFeePayer) {
+  static NativeProgramAccountClient createClient(final SolanaAccounts accounts, final Signer ownerAndFeePayer) {
     return createClient(accounts, AccountMeta.createFeePayer(ownerAndFeePayer.publicKey()));
   }
 
@@ -45,12 +49,6 @@ public interface NativeProgramAccountClient {
 
   static NativeProgramAccountClient createClient(final Signer ownerAndFeePayer) {
     return createClient(SolanaAccounts.MAIN_NET, ownerAndFeePayer);
-  }
-
-  static NativeProgramAccountClient createClient(final SolanaAccounts accounts,
-                                                 final PublicKey owner,
-                                                 final AccountMeta feePayer) {
-    return new NativeProgramAccountClientImpl(accounts, owner, feePayer);
   }
 
   static NativeProgramAccountClient createClient(final SolanaAccounts accounts,
@@ -381,7 +379,9 @@ public interface NativeProgramAccountClient {
     return createATAForFundedByFeePayer(idempotent, pda, owner, mint, solanaAccounts().readTokenProgram());
   }
 
-  default Instruction createATAForFundedByFeePayer(final boolean idempotent, final PublicKey owner, final PublicKey mint) {
+  default Instruction createATAForFundedByFeePayer(final boolean idempotent,
+                                                   final PublicKey owner,
+                                                   final PublicKey mint) {
     return createATAForFundedByFeePayer(idempotent, owner, mint, solanaAccounts().readTokenProgram());
   }
 
@@ -396,7 +396,9 @@ public interface NativeProgramAccountClient {
     return createATAForFundedByOwner(idempotent, owner, mint, solanaAccounts().readTokenProgram());
   }
 
-  default Instruction createATAForOwnerFundedByOwner(final boolean idempotent, final PublicKey pda, final PublicKey mint) {
+  default Instruction createATAForOwnerFundedByOwner(final boolean idempotent,
+                                                     final PublicKey pda,
+                                                     final PublicKey mint) {
     return createATAForOwnerFundedByOwner(idempotent, pda, mint, solanaAccounts().readTokenProgram());
   }
 
@@ -404,7 +406,9 @@ public interface NativeProgramAccountClient {
     return createATAForOwnerFundedByOwner(idempotent, mint, solanaAccounts().readTokenProgram());
   }
 
-  default Instruction createATAForOwnerFundedByFeePayer(final boolean idempotent, final PublicKey pda, final PublicKey mint) {
+  default Instruction createATAForOwnerFundedByFeePayer(final boolean idempotent,
+                                                        final PublicKey pda,
+                                                        final PublicKey mint) {
     return createATAForOwnerFundedByFeePayer(idempotent, pda, mint, solanaAccounts().readTokenProgram());
   }
 
@@ -412,7 +416,9 @@ public interface NativeProgramAccountClient {
     return createATAForOwnerFundedByFeePayer(idempotent, mint, solanaAccounts().readTokenProgram());
   }
 
-  default Instruction createATAForFeePayerFundedByOwner(final boolean idempotent, final PublicKey pda, final PublicKey mint) {
+  default Instruction createATAForFeePayerFundedByOwner(final boolean idempotent,
+                                                        final PublicKey pda,
+                                                        final PublicKey mint) {
     return createATAForFeePayerFundedByOwner(idempotent, pda, mint, solanaAccounts().readTokenProgram());
   }
 
@@ -420,7 +426,9 @@ public interface NativeProgramAccountClient {
     return createATAForFeePayerFundedByOwner(idempotent, mint, solanaAccounts().readTokenProgram());
   }
 
-  default Instruction createATAForFeePayerFundedByFeePayer(final boolean idempotent, final PublicKey pda, final PublicKey mint) {
+  default Instruction createATAForFeePayerFundedByFeePayer(final boolean idempotent,
+                                                           final PublicKey pda,
+                                                           final PublicKey mint) {
     return createATAForFeePayerFundedByFeePayer(idempotent, pda, mint, solanaAccounts().readTokenProgram());
   }
 
@@ -464,7 +472,8 @@ public interface NativeProgramAccountClient {
                                            final PublicKey stakeOrWithdrawAuthority,
                                            final StakeAuthorize stakeAuthorize);
 
-  default Instruction authorizeStakeAccountChecked(final StakeAccount stakeAccount, final StakeAuthorize stakeAuthorize) {
+  default Instruction authorizeStakeAccountChecked(final StakeAccount stakeAccount,
+                                                   final StakeAuthorize stakeAuthorize) {
     return authorizeStakeAccountChecked(
         stakeAccount.address(),
         stakeAuthorize == StakeAuthorize.Staker

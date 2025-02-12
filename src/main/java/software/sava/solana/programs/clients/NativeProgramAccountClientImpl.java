@@ -31,17 +31,8 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   private final NativeProgramClient nativeProgramClient;
   private final PublicKey owner;
   private final AccountMeta feePayer;
+  private final PublicKey feePayerPublicKey;
   private final ProgramDerivedAddress wrappedSolPDA;
-
-  NativeProgramAccountClientImpl(final SolanaAccounts solanaAccounts,
-                                 final PublicKey owner,
-                                 final AccountMeta feePayer) {
-    this.solanaAccounts = solanaAccounts;
-    this.nativeProgramClient = NativeProgramClient.createClient(solanaAccounts);
-    this.owner = owner;
-    this.wrappedSolPDA = findATA(solanaAccounts.wrappedSolTokenMint());
-    this.feePayer = feePayer;
-  }
 
   NativeProgramAccountClientImpl(final NativeProgramClient nativeProgramClient,
                                  final PublicKey owner,
@@ -50,6 +41,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
     this.nativeProgramClient = nativeProgramClient;
     this.owner = owner;
     this.feePayer = feePayer;
+    this.feePayerPublicKey = feePayer.publicKey();
     this.wrappedSolPDA = findATA(solanaAccounts.wrappedSolTokenMint());
   }
 
@@ -84,10 +76,11 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
                                        final long microLamportComputeUnitPrice,
                                        final Instruction instruction) {
     return Transaction.createTx(feePayer, List.of(
-        nativeProgramClient.computeUnitLimit(computeUnitLimit + COMPUTE_UNITS_CONSUMED),
-        nativeProgramClient.computeUnitPrice(microLamportComputeUnitPrice),
-        instruction
-    ));
+            nativeProgramClient.computeUnitLimit(computeUnitLimit + COMPUTE_UNITS_CONSUMED),
+            nativeProgramClient.computeUnitPrice(microLamportComputeUnitPrice),
+            instruction
+        )
+    );
   }
 
   @Override
@@ -96,10 +89,11 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
                                        final long microLamportComputeUnitPrice,
                                        final Instruction instruction) {
     return Transaction.createTx(feePayer, List.of(
-        nativeProgramClient.computeUnitLimit(computeUnitLimit + COMPUTE_UNITS_CONSUMED),
-        nativeProgramClient.computeUnitPrice(microLamportComputeUnitPrice),
-        instruction
-    ));
+            nativeProgramClient.computeUnitLimit(computeUnitLimit + COMPUTE_UNITS_CONSUMED),
+            nativeProgramClient.computeUnitPrice(microLamportComputeUnitPrice),
+            instruction
+        )
+    );
   }
 
   @Override
@@ -228,12 +222,14 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   }
 
   @Override
-  public Transaction createTransaction(final Instruction instruction, final LookupTableAccountMeta[] tableAccountMetas) {
+  public Transaction createTransaction(final Instruction instruction,
+                                       final LookupTableAccountMeta[] tableAccountMetas) {
     return Transaction.createTx(feePayer, List.of(instruction), tableAccountMetas);
   }
 
   @Override
-  public Transaction createTransaction(final List<Instruction> instructions, final LookupTableAccountMeta[] tableAccountMetas) {
+  public Transaction createTransaction(final List<Instruction> instructions,
+                                       final LookupTableAccountMeta[] tableAccountMetas) {
     return Transaction.createTx(feePayer, instructions, tableAccountMetas);
   }
 
@@ -269,16 +265,17 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public ProgramDerivedAddress findATAForFeePayer(final PublicKey mint) {
-    return AssociatedTokenProgram.findATA(solanaAccounts, feePayer.publicKey(), mint);
+    return AssociatedTokenProgram.findATA(solanaAccounts, feePayerPublicKey, mint);
   }
 
   @Override
   public ProgramDerivedAddress findATAForFeePayer(final PublicKey tokenProgram, final PublicKey mint) {
-    return AssociatedTokenProgram.findATA(solanaAccounts, feePayer.publicKey(), tokenProgram, mint);
+    return AssociatedTokenProgram.findATA(solanaAccounts, feePayerPublicKey, tokenProgram, mint);
   }
 
   @Override
-  public CompletableFuture<List<AccountInfo<TokenAccount>>> fetchTokenAccounts(final SolanaRpcClient rpcClient, final PublicKey tokenMintAddress) {
+  public CompletableFuture<List<AccountInfo<TokenAccount>>> fetchTokenAccounts(final SolanaRpcClient rpcClient,
+                                                                               final PublicKey tokenMintAddress) {
     return rpcClient.getTokenAccountsForTokenMintByOwner(owner, tokenMintAddress);
   }
 
@@ -331,7 +328,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
                                            final PublicKey programOwner) {
     return SystemProgram.createAccountWithSeed(
         solanaAccounts.invokedSystemProgram(),
-        feePayer.publicKey(),
+        feePayerPublicKey,
         accountWithSeed,
         lamports,
         space,
@@ -353,7 +350,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public AccountWithSeed createOffCurveAccountWithSeed(final String asciiSeed, final PublicKey programId) {
-    return PublicKey.createOffCurveAccountWithAsciiSeed(feePayer.publicKey(), asciiSeed, programId);
+    return PublicKey.createOffCurveAccountWithAsciiSeed(feePayerPublicKey, asciiSeed, programId);
   }
 
   @Override
@@ -403,7 +400,8 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
     return allocateAccountSpaceWithSeed(
         accountWithSeed,
         StakeAccount.BYTES,
-        solanaAccounts.stakeProgram());
+        solanaAccounts.stakeProgram()
+    );
   }
 
   @Override
@@ -558,7 +556,8 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
   }
 
   @Override
-  public Instruction delegateStakeAccount(final PublicKey initializedStakeAccount, final PublicKey validatorVoteAccount) {
+  public Instruction delegateStakeAccount(final PublicKey initializedStakeAccount,
+                                          final PublicKey validatorVoteAccount) {
     return nativeProgramClient.delegateStakeAccount(initializedStakeAccount, validatorVoteAccount, owner);
   }
 
@@ -578,7 +577,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public ProgramDerivedAddress findLookupTableAddress(final long recentSlot) {
-    return AddressLookupTableProgram.findLookupTableAddress(solanaAccounts, owner, recentSlot);
+    return AddressLookupTableProgram.findLookupTableAddress(solanaAccounts, feePayerPublicKey, recentSlot);
   }
 
   @Override
@@ -586,8 +585,8 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
     return AddressLookupTableProgram.createLookupTable(
         solanaAccounts,
         uninitializedTableAccount.publicKey(),
-        owner,
-        owner,
+        feePayerPublicKey,
+        feePayerPublicKey,
         recentSlot,
         uninitializedTableAccount.nonce()
     );
@@ -598,7 +597,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
     return AddressLookupTableProgram.freezeLookupTable(
         solanaAccounts,
         tableAccount,
-        owner
+        feePayerPublicKey
     );
   }
 
@@ -607,8 +606,8 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
     return AddressLookupTableProgram.extendLookupTable(
         solanaAccounts,
         tableAccount,
-        owner,
-        owner,
+        feePayerPublicKey,
+        feePayerPublicKey,
         newAddresses
     );
   }
@@ -618,7 +617,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
     return AddressLookupTableProgram.deactivateLookupTable(
         solanaAccounts,
         tableAccount,
-        owner
+        feePayerPublicKey
     );
   }
 
@@ -627,8 +626,8 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
     return AddressLookupTableProgram.closeLookupTable(
         solanaAccounts,
         tableAccount,
-        owner,
-        owner
+        feePayerPublicKey,
+        feePayerPublicKey
     );
   }
 }
