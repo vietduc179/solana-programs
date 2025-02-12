@@ -4,6 +4,7 @@
 
 User documentation lives at [sava.software](https://sava.software/).
 
+* [Dependency Configuration](https://sava.software/quickstart)
 * [Programs](https://sava.software/libraries/programs)
 
 ## Contribution

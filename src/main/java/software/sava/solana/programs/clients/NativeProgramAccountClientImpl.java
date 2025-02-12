@@ -331,7 +331,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
                                            final PublicKey programOwner) {
     return SystemProgram.createAccountWithSeed(
         solanaAccounts.invokedSystemProgram(),
-        owner,
+        feePayer.publicKey(),
         accountWithSeed,
         lamports,
         space,
@@ -353,7 +353,7 @@ final class NativeProgramAccountClientImpl implements NativeProgramAccountClient
 
   @Override
   public AccountWithSeed createOffCurveAccountWithSeed(final String asciiSeed, final PublicKey programId) {
-    return PublicKey.createOffCurveAccountWithAsciiSeed(owner, asciiSeed, programId);
+    return PublicKey.createOffCurveAccountWithAsciiSeed(feePayer.publicKey(), asciiSeed, programId);
   }
 
   @Override

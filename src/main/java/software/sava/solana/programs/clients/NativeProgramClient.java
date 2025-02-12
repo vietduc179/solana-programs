@@ -116,9 +116,10 @@ public interface NativeProgramClient {
                                                                                                                 final PublicKey voteAccount,
                                                                                                                 final PublicKey withdrawAuthority);
 
-  default CompletableFuture<List<AccountInfo<StakeAccount>>> fetchStakeAccountsForValidatorAndStakeAndWithdrawAuthority(final SolanaRpcClient rpcClient,
-                                                                                                                        final PublicKey voteAccount,
-                                                                                                                        final PublicKey withdrawAuthority) {
+  default CompletableFuture<List<AccountInfo<StakeAccount>>> fetchStakeAccountsForValidatorAndStakeAndWithdrawAuthority(
+      final SolanaRpcClient rpcClient,
+      final PublicKey voteAccount,
+      final PublicKey withdrawAuthority) {
     return fetchStakeAccountsForValidatorAndStakeAndWithdrawAuthority(rpcClient, StakeState.Stake, voteAccount, withdrawAuthority);
   }
 
@@ -285,20 +286,23 @@ public interface NativeProgramClient {
     return mergeStakeAccounts(destinationStakeAccount, srcStakeAccount.address());
   }
 
-  default List<Instruction> mergeStakeAccountKeysInto(final StakeAccount destinationStakeAccount, final Collection<PublicKey> stakeAccounts) {
+  default List<Instruction> mergeStakeAccountKeysInto(final StakeAccount destinationStakeAccount,
+                                                      final Collection<PublicKey> stakeAccounts) {
     return stakeAccounts.stream()
         .map(stakeAccount -> mergeStakeAccounts(destinationStakeAccount, stakeAccount))
         .toList();
   }
 
-  default List<Instruction> mergeStakeAccountsInto(final StakeAccount destinationStakeAccount, final Collection<StakeAccount> stakeAccounts) {
+  default List<Instruction> mergeStakeAccountsInto(final StakeAccount destinationStakeAccount,
+                                                   final Collection<StakeAccount> stakeAccounts) {
     return stakeAccounts.stream()
         .map(StakeAccount::address)
         .map(stakeAccount -> mergeStakeAccounts(destinationStakeAccount, stakeAccount))
         .toList();
   }
 
-  default List<Instruction> mergeStakeAccountInfosInto(final StakeAccount destinationStakeAccount, final Collection<AccountInfo<StakeAccount>> stakeAccounts) {
+  default List<Instruction> mergeStakeAccountInfosInto(final StakeAccount destinationStakeAccount,
+                                                       final Collection<AccountInfo<StakeAccount>> stakeAccounts) {
     return stakeAccounts.stream()
         .map(AccountInfo::data)
         .map(StakeAccount::address)
