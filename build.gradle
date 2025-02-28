@@ -83,7 +83,7 @@ publishing {
         url = "$VCS_URL"
         licenses {
           license {
-            name = 'GNU General Public License v3.0'
+            name = 'Apache-2.0 license'
             url = 'https://github.com/sava-software/solana-programs/blob/main/LICENSE'
           }
         }
