@@ -3,8 +3,9 @@ package software.sava.solana.programs.token;
 import software.sava.core.accounts.PublicKey;
 import software.sava.core.accounts.SolanaAccounts;
 import software.sava.core.accounts.meta.AccountMeta;
-import software.sava.core.tx.Instruction;
 import software.sava.core.encoding.ByteUtil;
+import software.sava.core.programs.Discriminator;
+import software.sava.core.tx.Instruction;
 
 import java.util.List;
 
@@ -15,7 +16,7 @@ import static software.sava.core.tx.Instruction.createInstruction;
 // https://github.com/solana-labs/solana-program-library/blob/master/token/program/src/instruction.rs#L25
 public final class TokenProgram {
 
-  private enum TokenInstruction {
+  public enum TokenInstruction implements Discriminator {
 
     // Initializes a new mint and optionally deposits all the newly minted
     // tokens in an account.
@@ -456,6 +457,22 @@ public final class TokenProgram {
     TokenInstruction() {
       this.discriminator = (byte) this.ordinal();
       this.discriminatorBytes = new byte[]{this.discriminator};
+    }
+
+    @Override
+    public byte[] data() {
+      return discriminatorBytes;
+    }
+
+    @Override
+    public int write(final byte[] bytes, final int i) {
+      bytes[i] = (byte) this.ordinal();
+      return 1;
+    }
+
+    @Override
+    public int length() {
+      return 1;
     }
   }
 

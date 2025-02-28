@@ -4,6 +4,7 @@ import software.sava.core.accounts.ProgramDerivedAddress;
 import software.sava.core.accounts.PublicKey;
 import software.sava.core.accounts.SolanaAccounts;
 import software.sava.core.accounts.meta.AccountMeta;
+import software.sava.core.programs.Discriminator;
 import software.sava.core.tx.Instruction;
 
 import java.util.List;
@@ -12,7 +13,7 @@ import static software.sava.core.accounts.meta.AccountMeta.*;
 
 public final class AssociatedTokenProgram {
 
-  private enum Instructions {
+  public enum Instructions implements Discriminator {
 
     // https://github.com/solana-labs/solana-program-library/blob/d0f48a6ba34acb01dd0fde5368e73b406c544837/associated-token-account/program/src/instruction.rs#L15
 
@@ -63,6 +64,22 @@ public final class AssociatedTokenProgram {
     Instructions() {
       this.discriminatorBytes = new byte[]{(byte) this.ordinal()};
     }
+
+    @Override
+    public byte[] data() {
+      return discriminatorBytes;
+    }
+
+    @Override
+    public int write(final byte[] bytes, final int i) {
+      bytes[i] = (byte) this.ordinal();
+      return 1;
+    }
+
+    @Override
+    public int length() {
+      return 1;
+    }
   }
 
   public static ProgramDerivedAddress findATA(final SolanaAccounts solanaAccounts,
@@ -70,10 +87,11 @@ public final class AssociatedTokenProgram {
                                               final PublicKey tokenProgram,
                                               final PublicKey mint) {
     return PublicKey.findProgramAddress(List.of(
-        owner.toByteArray(),
-        tokenProgram.toByteArray(),
-        mint.toByteArray()
-    ), solanaAccounts.associatedTokenAccountProgram());
+            owner.toByteArray(),
+            tokenProgram.toByteArray(),
+            mint.toByteArray()
+        ), solanaAccounts.associatedTokenAccountProgram()
+    );
   }
 
   public static ProgramDerivedAddress findATA(final SolanaAccounts solanaAccounts,

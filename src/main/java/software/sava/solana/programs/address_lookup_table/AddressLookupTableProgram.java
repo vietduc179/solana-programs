@@ -18,7 +18,7 @@ import static software.sava.core.tx.Instruction.createInstruction;
 
 public final class AddressLookupTableProgram {
 
-  private enum Instructions implements Discriminator {
+  public enum Instructions implements Discriminator {
 
     // Create an address lookup table
     //

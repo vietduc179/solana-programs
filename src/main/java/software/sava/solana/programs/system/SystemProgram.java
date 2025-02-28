@@ -19,7 +19,7 @@ import static software.sava.core.tx.Instruction.createInstruction;
 // https://github.com/solana-labs/solana/blob/master/sdk/program/src/system_instruction.rs
 public final class SystemProgram {
 
-  private enum Instructions implements Discriminator {
+  public enum Instructions implements Discriminator {
     // Create a new account
     //
     // # Account references

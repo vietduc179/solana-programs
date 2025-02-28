@@ -20,7 +20,7 @@ import static software.sava.core.programs.Discriminator.serializeDiscriminator;
 
 public final class StakeProgram {
 
-  private enum Instructions implements Discriminator {
+  public enum Instructions implements Discriminator {
     // Initialize a stake with lockup and authorization information
     //
     // # Account references

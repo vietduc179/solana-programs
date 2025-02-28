@@ -79,7 +79,7 @@ publishing {
 
       pom {
         name = project.name
-        description = "Native Solana & SPL Program Clients "
+        description = "Native Solana & SPL Program Clients"
         url = "$VCS_URL"
         licenses {
           license {

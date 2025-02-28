@@ -17,7 +17,7 @@ import static software.sava.core.encoding.ByteUtil.putInt64LE;
 // https://github.com/igneous-labs/sanctum-spl-stake-pool/blob/sanctum-spl-pool-deploy/stake-pool/program/src/instruction.rs#L53
 public final class StakePoolProgram {
 
-  private enum Instructions implements Discriminator {
+  public enum Instructions implements Discriminator {
 
     //   Initializes a new StakePool.
     //
