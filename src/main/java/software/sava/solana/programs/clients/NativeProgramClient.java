@@ -314,7 +314,7 @@ public interface NativeProgramClient {
     if (stakeAccounts.size() < 2) {
       return List.of();
     } else {
-      final var mergeInto = stakeAccounts.getFirst();
+      final var mergeInto = stakeAccounts.get(0);
       return stakeAccounts.stream().skip(1)
           .map(StakeAccount::address)
           .map(stakeAccount -> mergeStakeAccounts(mergeInto, stakeAccount))
@@ -326,7 +326,7 @@ public interface NativeProgramClient {
     if (stakeAccounts.size() < 2) {
       return List.of();
     } else {
-      final var mergeInto = stakeAccounts.getFirst().data();
+      final var mergeInto = stakeAccounts.get(0).data();
       return stakeAccounts.stream().skip(1)
           .map(AccountInfo::data)
           .map(StakeAccount::address)
